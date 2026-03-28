@@ -9,6 +9,7 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
+    const [selectedRequest, setSelectedRequest] = useState(null);
     const navigate = useNavigate();
     const { addToast } = useToast();
 
@@ -239,7 +240,12 @@ export default function AdminDashboard() {
                                                 {req.media_type === 'movie' ? 'Movie' : 'TV'}
                                             </span>
                                         </td>
-                                        <td className="truncate-cell" data-label="Requested By" style={{ fontWeight: 500, color: 'var(--accent-secondary)' }}>
+                                        <td 
+                                            className="truncate-cell" 
+                                            data-label="Requested By" 
+                                            style={{ fontWeight: 500, color: 'var(--accent-secondary)', cursor: 'pointer', textDecoration: 'underline' }}
+                                            onClick={() => setSelectedRequest(req)}
+                                        >
                                             {req.requested_by || 'Anonymous'}
                                         </td>
                                         <td data-label="Status">
@@ -287,6 +293,38 @@ export default function AdminDashboard() {
                     </div>
                 )}
             </div>
+
+            {/* Analytics Modal */}
+            {selectedRequest && (
+                <div className="modal-overlay" onClick={() => setSelectedRequest(null)} style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000}}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{backgroundColor: 'var(--bg-secondary)', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '80vh', overflowY: 'auto'}}>
+                        <h2 style={{marginTop: 0, marginBottom: '16px', color: 'var(--text-primary)'}}>
+                            Analytics for {selectedRequest.requested_by || 'Anonymous'}
+                        </h2>
+                        
+                        <div style={{marginBottom: '20px'}}>
+                            <h3 style={{color: 'var(--accent-primary)', fontSize: '1.1rem', marginBottom: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '4px'}}>Network</h3>
+                            <p style={{margin: '4px 0'}}><strong>IP Address:</strong> {selectedRequest.ip_address || 'Unknown'}</p>
+                            <p style={{margin: '4px 0'}}><strong>Connection Type:</strong> {selectedRequest.device_info?.connectionType || 'Unknown'}</p>
+                        </div>
+
+                        <div style={{marginBottom: '20px'}}>
+                            <h3 style={{color: 'var(--accent-primary)', fontSize: '1.1rem', marginBottom: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '4px'}}>Device & Browser</h3>
+                            <p style={{margin: '4px 0'}}><strong>OS / Browser:</strong> {selectedRequest.device_info?.userAgent || 'Unknown'}</p>
+                            <p style={{margin: '4px 0'}}><strong>Language:</strong> {selectedRequest.device_info?.language || 'Unknown'}</p>
+                            <p style={{margin: '4px 0'}}><strong>Time Zone:</strong> {selectedRequest.device_info?.timeZone || 'Unknown'}</p>
+                            <p style={{margin: '4px 0'}}><strong>Screen Resolution:</strong> {selectedRequest.device_info?.screenWidth}x{selectedRequest.device_info?.screenHeight}</p>
+                            <p style={{margin: '4px 0'}}><strong>Viewport Size:</strong> {selectedRequest.device_info?.innerWidth}x{selectedRequest.device_info?.innerHeight}</p>
+                            <p style={{margin: '4px 0'}}><strong>RAM Estimate:</strong> {selectedRequest.device_info?.deviceMemory ? `${selectedRequest.device_info.deviceMemory} GB` : 'Unknown'}</p>
+                            <p style={{margin: '4px 0'}}><strong>Logical Cores:</strong> {selectedRequest.device_info?.hardwareConcurrency || 'Unknown'}</p>
+                        </div>
+
+                        <button className="btn btn-secondary" onClick={() => setSelectedRequest(null)} style={{width: '100%', marginTop: '10px'}}>
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

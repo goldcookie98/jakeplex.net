@@ -5,6 +5,7 @@ dotenv.config();
 
 let db = null;
 let requestsCollection = null;
+let knownDevicesCollection = null;
 
 let firebaseInitError = null;
 
@@ -26,6 +27,7 @@ if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !p
     initializeApp({ credential: cert(serviceAccount) });
     db = getFirestore();
     requestsCollection = db.collection('requests');
+    knownDevicesCollection = db.collection('known_devices');
   } catch (e) {
     firebaseInitError = e.message;
     console.error("Firebase Admin Initialization Error:", e);
@@ -46,6 +48,8 @@ export const addRequest = async (data) => {
     requested_by: data.requested_by || 'Anonymous',
     device_info: data.device_info || null,
     ip_address: data.ip_address || null,
+    location_info: data.location_info || null,
+    estimated_user: data.estimated_user || null,
     requested_at: new Date().toISOString(),
     status: 'pending'
   });
@@ -88,4 +92,45 @@ export const deleteRequest = async (id) => {
   if (!requestsCollection) throw new Error("Database not connected.");
   await requestsCollection.doc(id).delete();
   return { success: true };
+};
+
+export const updateRequestEstimatedUser = async (id, estimated_user) => {
+  if (!requestsCollection) throw new Error("Database not connected.");
+  await requestsCollection.doc(id).update({ estimated_user });
+  return { success: true };
+};
+
+export const assignKnownDevice = async (name, ipAddress, userAgent) => {
+  if (!knownDevicesCollection) throw new Error("Database not connected.");
+  // check if already exists
+  const snapshot = await knownDevicesCollection
+    .where('ip_address', '==', ipAddress)
+    .where('user_agent', '==', userAgent)
+    .limit(1)
+    .get();
+  
+  if (snapshot.empty) {
+    await knownDevicesCollection.add({
+      assigned_user: name,
+      ip_address: ipAddress,
+      user_agent: userAgent
+    });
+  } else {
+    // update existing
+    await knownDevicesCollection.doc(snapshot.docs[0].id).update({ assigned_user: name });
+  }
+  return { success: true };
+};
+
+export const findKnownDevice = async (ipAddress, userAgent) => {
+  if (!knownDevicesCollection) throw new Error("Database not connected.");
+  if (!ipAddress || !userAgent) return null;
+  const snapshot = await knownDevicesCollection
+    .where('ip_address', '==', ipAddress)
+    .where('user_agent', '==', userAgent)
+    .limit(1)
+    .get();
+    
+  if (snapshot.empty) return null;
+  return snapshot.docs[0].data();
 };

@@ -4,12 +4,56 @@ import { useToast } from '../context/ToastContext';
 
 const IMG_BASE = 'https://image.tmdb.org/t/p/w92';
 
+const guessDeviceModel = (deviceInfo) => {
+    if (!deviceInfo || !deviceInfo.userAgent) return 'Unknown Device';
+    
+    const ua = deviceInfo.userAgent;
+    const width = Math.min(deviceInfo.screenWidth || 0, deviceInfo.screenHeight || 0);
+    const height = Math.max(deviceInfo.screenWidth || 0, deviceInfo.screenHeight || 0);
+    
+    if (/iPhone/i.test(ua)) {
+        if (width === 430 && height === 932) return 'iPhone 14/15/16 Pro Max / 16 Plus';
+        if (width === 393 && height === 852) return 'iPhone 14/15/16 Pro / 15/16 / 14 Plus';
+        if (width === 428 && height === 926) return 'iPhone 12/13/14 Pro Max / 14 Plus';
+        if (width === 390 && height === 844) return 'iPhone 12/13/14 / 12/13/14 Pro';
+        if (width === 375 && height === 812) return 'iPhone X/XS / 11 Pro / 12/13 Mini';
+        if (width === 414 && height === 896) return 'iPhone XR/11 / XS Max / 11 Pro Max';
+        if (width === 414 && height === 736) return 'iPhone 6/7/8 Plus';
+        if (width === 375 && height === 667) return 'iPhone 6/7/8 / SE (2nd/3rd Gen)';
+        return 'iPhone (Unknown Model)';
+    }
+    
+    if (/iPad/i.test(ua) || (ua.includes('Mac') && typeof document !== 'undefined' && 'ontouchend' in document)) {
+        if (width === 1024 && height === 1366) return 'iPad Pro 12.9"';
+        if (width === 834 && height === 1194) return 'iPad Pro 11"';
+        if (width === 820 && height === 1180) return 'iPad Air (4th/5th Gen)';
+        if (width === 810 && height === 1080) return 'iPad (7th/8th/9th Gen)';
+        if (width === 768 && height === 1024) return 'iPad Mini / iPad (<=6th Gen)';
+        return 'iPad';
+    }
+    
+    if (/Macintosh/i.test(ua)) return 'Mac / MacBook';
+    if (/Windows/i.test(ua)) return 'Windows PC';
+    if (/Android/i.test(ua)) {
+        const match = ua.match(/Android.*?; ([^;]+)\sBuild/);
+        return match ? `Android (${match[1].trim()})` : 'Android Device';
+    }
+    
+    if (/Linux/i.test(ua)) return 'Linux Device';
+    if (/CrOS/i.test(ua)) return 'Chromebook';
+    
+    return 'Other Device';
+};
+
 export default function AdminDashboard() {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
     const [selectedRequest, setSelectedRequest] = useState(null);
+    const [assignName, setAssignName] = useState('');
+    const [assigning, setAssigning] = useState(false);
+    const [activeTab, setActiveTab] = useState('requests');
     const navigate = useNavigate();
     const { addToast } = useToast();
 
@@ -93,6 +137,39 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleAssignIdentity = async (reqId, ip, ua) => {
+        if (!assignName.trim()) {
+            addToast('Please enter a name', 'error');
+            return;
+        }
+        setAssigning(true);
+        try {
+            const res = await fetch(`/api/requests/${reqId}/assign-user`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ 
+                    name: assignName.trim(), 
+                    ip_address: ip, 
+                    user_agent: ua 
+                })
+            });
+            if (!res.ok) throw new Error('Failed');
+            
+            // Update local state
+            setRequests(prev => prev.map(r => r.id === reqId ? { ...r, estimated_user: assignName.trim() } : r));
+            setSelectedRequest(prev => ({ ...prev, estimated_user: assignName.trim() }));
+            addToast('Identity assigned successfully!', 'success');
+            setAssignName('');
+        } catch (err) {
+            addToast('Failed to assign identity', 'error');
+        } finally {
+            setAssigning(false);
+        }
+    };
+
     const handleLogout = () => {
         localStorage.removeItem('jakeplex_token');
         navigate('/admin', { replace: true });
@@ -108,6 +185,73 @@ export default function AdminDashboard() {
         return matchesStatus && matchesType;
     });
 
+    const userProfiles = [];
+    const usersMap = new Map();
+    requests.forEach(req => {
+        if (!req.ip_address || !req.device_info?.userAgent) return;
+        const key = `${req.ip_address}_${req.device_info.userAgent}`;
+        if (!usersMap.has(key)) {
+            usersMap.set(key, {
+                id: req.id, // reference ID for assignment
+                ip_address: req.ip_address,
+                location_info: req.location_info,
+                device_info: req.device_info,
+                estimated_user: req.estimated_user,
+                names_used: new Set([req.requested_by || 'Anonymous']),
+                request_count: 1,
+                last_active: req.requested_at
+            });
+        } else {
+            const u = usersMap.get(key);
+            u.names_used.add(req.requested_by || 'Anonymous');
+            u.request_count++;
+            if (new Date(req.requested_at) > new Date(u.last_active)) {
+                u.last_active = req.requested_at;
+                if (req.estimated_user) u.estimated_user = req.estimated_user;
+                u.id = req.id; // use latest request ID for future assignment payloads
+            }
+        }
+    });
+    usersMap.forEach(v => {
+        v.names_used = Array.from(v.names_used).join(', ');
+        userProfiles.push(v);
+    });
+    userProfiles.sort((a, b) => new Date(b.last_active) - new Date(a.last_active));
+
+    const hardwareProfiles = [];
+    const hardwareMap = new Map();
+    requests.forEach(req => {
+        if (!req.device_info?.userAgent) return;
+        const guessedModel = guessDeviceModel(req.device_info);
+        const resolutionString = `${req.device_info.screenWidth || 0}x${req.device_info.screenHeight || 0}`;
+        const key = `${guessedModel}_${resolutionString}`;
+        
+        if (!hardwareMap.has(key)) {
+            hardwareMap.set(key, {
+                id: key,
+                guessed_model: guessedModel,
+                resolution: resolutionString,
+                ua_snippet: req.device_info.userAgent.split(' ').slice(0,3).join(' ') + '...',
+                full_ua: req.device_info.userAgent,
+                request_count: 1,
+                linked_users: new Set([req.estimated_user || req.requested_by || 'Anonymous']),
+                last_active: req.requested_at
+            });
+        } else {
+            const h = hardwareMap.get(key);
+            h.linked_users.add(req.estimated_user || req.requested_by || 'Anonymous');
+            h.request_count++;
+            if (new Date(req.requested_at) > new Date(h.last_active)) {
+                h.last_active = req.requested_at;
+            }
+        }
+    });
+    hardwareMap.forEach(v => {
+        v.linked_users = Array.from(v.linked_users).join(', ');
+        hardwareProfiles.push(v);
+    });
+    hardwareProfiles.sort((a, b) => b.request_count - a.request_count); // Sort by most popular hardware
+
     if (loading) {
         return (
             <div className="page">
@@ -122,7 +266,29 @@ export default function AdminDashboard() {
         <div className="page">
             <div className="container dashboard">
                 <div className="dashboard-header">
-                    <h1>Request Dashboard</h1>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                        <h1 style={{ margin: 0 }}>Dashboard</h1>
+                        <div style={{ display: 'flex', background: 'var(--bg-secondary)', borderRadius: '8px', padding: '4px' }}>
+                            <button 
+                                onClick={() => setActiveTab('requests')}
+                                style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: activeTab === 'requests' ? 'var(--accent-primary)' : 'transparent', color: activeTab === 'requests' ? '#1a1a1a' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
+                            >
+                                Requests
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('users')}
+                                style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: activeTab === 'users' ? 'var(--accent-primary)' : 'transparent', color: activeTab === 'users' ? '#1a1a1a' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
+                            >
+                                Users
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('devices')}
+                                style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: activeTab === 'devices' ? 'var(--accent-primary)' : 'transparent', color: activeTab === 'devices' ? '#1a1a1a' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
+                            >
+                                Devices
+                            </button>
+                        </div>
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div className="dashboard-stats">
                             <div className="stat-card">
@@ -144,7 +310,9 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                <div className="filter-bar">
+                {activeTab === 'requests' ? (
+                    <>
+                        <div className="filter-bar">
                     <div className="filter-group">
                         <span className="filter-label">Status:</span>
                         <div className="filter-chips">
@@ -243,10 +411,19 @@ export default function AdminDashboard() {
                                         <td 
                                             className="truncate-cell" 
                                             data-label="Requested By" 
-                                            style={{ fontWeight: 500, color: 'var(--accent-secondary)', cursor: 'pointer', textDecoration: 'underline' }}
+                                            style={{ cursor: 'pointer' }}
                                             onClick={() => setSelectedRequest(req)}
                                         >
-                                            {req.requested_by || 'Anonymous'}
+                                            <span style={{ fontWeight: 500, color: 'var(--accent-secondary)', textDecoration: 'underline' }}>
+                                                {req.requested_by || 'Anonymous'}
+                                            </span>
+                                            {req.estimated_user && (
+                                                <div style={{ marginTop: '4px' }}>
+                                                    <span className="badge badge-pending" style={{ fontSize: '0.7rem', backgroundColor: 'var(--accent-primary)', color: '#1a1a1a' }}>
+                                                        Known: {req.estimated_user}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </td>
                                         <td data-label="Status">
                                             <span className={`badge badge-${req.status}`}>
@@ -292,6 +469,109 @@ export default function AdminDashboard() {
                         </table>
                     </div>
                 )}
+                    </>
+                ) : activeTab === 'users' ? (
+                    <div className="requests-table-wrapper" style={{ marginTop: '20px' }}>
+                        <table className="requests-table">
+                            <thead>
+                                <tr>
+                                    <th>Identity</th>
+                                    <th>Location</th>
+                                    <th>Browser / OS</th>
+                                    <th>Names Used</th>
+                                    <th>Total Requests</th>
+                                    <th>Last Active</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {userProfiles.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>No device footprints found.</td>
+                                    </tr>
+                                ) : userProfiles.map(user => (
+                                    <tr key={user.id}>
+                                        <td data-label="Identity">
+                                            {user.estimated_user ? (
+                                                <span className="badge badge-pending" style={{ backgroundColor: 'var(--accent-primary)', color: '#1a1a1a' }}>
+                                                    Known: {user.estimated_user}
+                                                </span>
+                                            ) : (
+                                                <span style={{ color: 'var(--text-muted)' }}>Unassigned</span>
+                                            )}
+                                        </td>
+                                        <td data-label="Location">
+                                            {user.location_info?.country !== 'Unknown' ? `${user.location_info?.city}, ${user.location_info?.country}` : 'Unknown'}
+                                        </td>
+                                        <td data-label="Browser / OS" className="truncate-cell" style={{ maxWidth: '200px' }} title={user.device_info?.userAgent}>
+                                            {user.device_info?.userAgent?.split(' ')[0] || 'Unknown'}
+                                        </td>
+                                        <td data-label="Names Used" style={{ fontStyle: 'italic' }}>
+                                            {user.names_used}
+                                        </td>
+                                        <td data-label="Total Requests">
+                                            {user.request_count}
+                                        </td>
+                                        <td data-label="Last Active" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                            {new Date(user.last_active).toLocaleDateString()}
+                                        </td>
+                                        <td data-label="Actions">
+                                            <button 
+                                                className="btn btn-secondary btn-sm"
+                                                onClick={() => setSelectedRequest(user)}
+                                            >
+                                                Assign Identity
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : activeTab === 'devices' ? (
+                    <div className="requests-table-wrapper" style={{ marginTop: '20px' }}>
+                        <table className="requests-table">
+                            <thead>
+                                <tr>
+                                    <th>Hardware Model</th>
+                                    <th>Resolution</th>
+                                    <th>User Agent Snippet</th>
+                                    <th>Linked Users</th>
+                                    <th>Total Requests</th>
+                                    <th>Last Active</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {hardwareProfiles.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>No devices found.</td>
+                                    </tr>
+                                ) : hardwareProfiles.map(device => (
+                                    <tr key={device.id}>
+                                        <td data-label="Hardware Model" style={{ fontWeight: typeof device.guessed_model === 'string' && !device.guessed_model.includes('Unknown') ? 'bold' : 'normal', color: 'var(--text-primary)' }}>
+                                            {device.guessed_model}
+                                        </td>
+                                        <td data-label="Resolution">
+                                            {device.resolution}
+                                        </td>
+                                        <td data-label="User Agent Snippet" className="truncate-cell" style={{ maxWidth: '250px' }} title={device.full_ua}>
+                                            {device.ua_snippet}
+                                        </td>
+                                        <td data-label="Linked Users" style={{ fontStyle: 'italic', color: 'var(--accent-secondary)' }}>
+                                            {device.linked_users}
+                                        </td>
+                                        <td data-label="Total Requests">
+                                            {device.request_count}
+                                        </td>
+                                        <td data-label="Last Active" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                            {new Date(device.last_active).toLocaleDateString()}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : null}
             </div>
 
             {/* Analytics Modal */}
@@ -305,7 +585,35 @@ export default function AdminDashboard() {
                         <div style={{marginBottom: '20px'}}>
                             <h3 style={{color: 'var(--accent-primary)', fontSize: '1.1rem', marginBottom: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '4px'}}>Network</h3>
                             <p style={{margin: '4px 0'}}><strong>IP Address:</strong> {selectedRequest.ip_address || 'Unknown'}</p>
+                            {selectedRequest.location_info && selectedRequest.location_info.country !== 'Unknown' && (
+                                <p style={{margin: '4px 0'}}><strong>Location:</strong> {selectedRequest.location_info.city !== 'Unknown' ? `${selectedRequest.location_info.city}, ` : ''}{selectedRequest.location_info.region !== 'Unknown' ? `${selectedRequest.location_info.region}, ` : ''}{selectedRequest.location_info.country}</p>
+                            )}
                             <p style={{margin: '4px 0'}}><strong>Connection Type:</strong> {selectedRequest.device_info?.connectionType || 'Unknown'}</p>
+                        </div>
+
+                        <div style={{marginBottom: '20px'}}>
+                            <h3 style={{color: 'var(--accent-primary)', fontSize: '1.1rem', marginBottom: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '4px'}}>Assigned Identity</h3>
+                            {selectedRequest.estimated_user ? (
+                                <p style={{margin: '4px 0'}}><strong>Known User:</strong> <span style={{color: 'var(--accent-secondary)', fontWeight: 'bold'}}>{selectedRequest.estimated_user}</span></p>
+                            ) : (
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '8px' }}>
+                                    <input 
+                                        type="text" 
+                                        className="form-input" 
+                                        placeholder="Assign real name..." 
+                                        value={assignName}
+                                        onChange={(e) => setAssignName(e.target.value)}
+                                        style={{ padding: '6px 10px', fontSize: '0.9rem', flex: 1 }}
+                                    />
+                                    <button 
+                                        className="btn btn-secondary btn-sm"
+                                        disabled={assigning}
+                                        onClick={() => handleAssignIdentity(selectedRequest.id, selectedRequest.ip_address, selectedRequest.device_info?.userAgent)}
+                                    >
+                                        {assigning ? 'Saving...' : 'Set Known User'}
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <div style={{marginBottom: '20px'}}>

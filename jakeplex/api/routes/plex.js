@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { getRequests } from '../db.js';
 
 const router = Router();
 
@@ -137,6 +138,78 @@ router.get('/library', async (req, res) => {
     } catch (err) {
         console.error('Plex Library Error:', err.message, err.cause);
         res.json({ items: [], error: `Fetch failed: ${err.message} | Cause: ${err.cause ? err.cause.message : 'unknown'}` });
+    }
+});
+
+// Securely fetch 4 most recently added items that are not requested
+router.get('/recent-unrequested', async (req, res) => {
+    try {
+        const plexUrl = process.env.PLEX_URL;
+        const plexToken = process.env.PLEX_TOKEN;
+
+        if (!plexUrl || !plexToken || plexUrl.includes('your-plex-ip') || plexToken.includes('YOUR_PLEX_TOKEN')) {
+            return res.json({ error: 'Plex not configured', items: [] });
+        }
+
+        const cleanPlexUrl = plexUrl.endsWith('/') ? plexUrl.slice(0, -1) : plexUrl;
+
+        // Fetch requests from DB
+        const requests = await getRequests();
+        const requestedTitles = new Set(requests.map(r => r.title?.toLowerCase().trim()));
+
+        // 1. Get library sections
+        const sectionsRes = await fetch(`${cleanPlexUrl}/library/sections?X-Plex-Token=${plexToken}`, {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!sectionsRes.ok) throw new Error('Failed to fetch sections');
+        const sectionsData = await sectionsRes.json();
+        const directories = sectionsData.MediaContainer?.Directory || [];
+
+        // 2. Fetch contents for movie/show sections in parallel
+        const fetchPromises = [];
+
+        for (const dir of directories) {
+            if (dir.type === 'movie' || dir.type === 'show') {
+                const promise = fetch(`${cleanPlexUrl}/library/sections/${dir.key}/all?X-Plex-Token=${plexToken}`, {
+                    headers: { 'Accept': 'application/json' }
+                }).then(async (libRes) => {
+                    if (libRes.ok) {
+                        const libData = await libRes.json();
+                        const metadata = libData.MediaContainer?.Metadata || [];
+
+                        return metadata.map(item => ({
+                            id: item.ratingKey,
+                            title: item.title,
+                            year: item.year,
+                            type: dir.type,
+                            poster_path: item.thumb,
+                            addedAt: item.addedAt
+                        }));
+                    }
+                    return [];
+                }).catch(e => {
+                    console.error('Section fetch error:', e);
+                    return [];
+                });
+
+                fetchPromises.push(promise);
+            }
+        }
+
+        const resultsArrays = await Promise.all(fetchPromises);
+        let allItems = resultsArrays.flat();
+
+        // Sort by most recently added
+        allItems.sort((a, b) => b.addedAt - a.addedAt);
+
+        // Filter out requested items
+        const unrequestedItems = allItems.filter(item => !requestedTitles.has(item.title?.toLowerCase().trim()));
+
+        res.json({ items: unrequestedItems.slice(0, 4) });
+    } catch (err) {
+        console.error('Plex Recent-Unrequested Error:', err.message, err.cause);
+        res.json({ items: [], error: `Fetch failed: ${err.message}` });
     }
 });
 

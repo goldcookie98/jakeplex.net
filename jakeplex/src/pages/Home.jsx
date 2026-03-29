@@ -1,4 +1,5 @@
 import SearchBar from '../components/SearchBar';
+import RecentlyAdded from '../components/RecentlyAdded';
 
 export default function Home() {
     return (
@@ -10,6 +11,7 @@ export default function Home() {
                         Search for any movie or TV show and request it to be added to the library
                     </p>
                     <SearchBar autoFocus />
+                    <RecentlyAdded />
                 </div>
             </div>
         </div>

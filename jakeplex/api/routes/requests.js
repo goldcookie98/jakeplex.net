@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { addRequest, getRequests, getRequestByTmdbId, updateRequestStatus, deleteRequest } from '../db.js';
+import { addRequest, getRequests, getRequestByTmdbId, updateRequestStatus, deleteRequest, updateRequestEstimatedUser, assignKnownDevice, findKnownDevice } from '../db.js';
 import { verifyToken } from '../middleware/auth.js';
 
 const router = Router();
@@ -9,6 +9,12 @@ router.post('/', async (req, res) => {
     try {
         const { tmdb_id, media_type, title, poster_path, backdrop_path, overview, year, requested_by, device_info } = req.body;
         const ip_address = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.ip;
+        
+        const location_info = {
+            city: req.headers['x-vercel-ip-city'] || 'Unknown',
+            region: req.headers['x-vercel-ip-country-region'] || 'Unknown',
+            country: req.headers['x-vercel-ip-country'] || 'Unknown'
+        };
 
         if (!tmdb_id || !media_type || !title) {
             return res.status(400).json({ error: 'tmdb_id, media_type, and title are required' });
@@ -20,9 +26,17 @@ router.post('/', async (req, res) => {
             return res.status(409).json({ error: 'Already requested', request: existing });
         }
 
+        let estimated_user = null;
+        if (ip_address && device_info?.userAgent) {
+            const knownDevice = await findKnownDevice(ip_address, device_info.userAgent);
+            if (knownDevice) {
+                estimated_user = knownDevice.assigned_user;
+            }
+        }
+
         const result = await addRequest({ 
             tmdb_id, media_type, title, poster_path, backdrop_path, 
-            overview, year, requested_by, device_info, ip_address 
+            overview, year, requested_by, device_info, ip_address, location_info, estimated_user 
         });
         res.status(201).json({ id: result.id, message: 'Request submitted!' });
     } catch (err) {
@@ -141,6 +155,23 @@ router.post('/auto-detect', verifyToken, async (req, res) => {
         res.json({ updated, message: `${updated.length} request(s) auto-approved` });
     } catch (err) {
         console.error('Auto-detect error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Admin: Assign a known user to a request's device signature
+router.post('/:id/assign-user', verifyToken, async (req, res) => {
+    try {
+        const { name, ip_address, user_agent } = req.body;
+        if (!name || !ip_address || !user_agent) {
+            return res.status(400).json({ error: 'Name, ip_address, and user_agent are required' });
+        }
+        
+        await assignKnownDevice(name, ip_address, user_agent);
+        await updateRequestEstimatedUser(req.params.id, name);
+        
+        res.json({ message: 'User identity assigned to device!' });
+    } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });

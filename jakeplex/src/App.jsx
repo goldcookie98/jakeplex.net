@@ -15,21 +15,21 @@ import { AuthProvider } from './context/AuthContext'
 function App() {
   return (
     <ToastProvider>
-      <Navbar />
-      <Toast />
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/search" element={<SearchResults />} />
-            <Route path="/library" element={<Library />} />
-            <Route path="/instructions" element={<Instructions />} />
-            <Route path="/requests" element={<MyRequests />} />
-            <Route path="/movie/:id" element={<MediaDetail type="movie" />} />
-            <Route path="/tv/:id" element={<MediaDetail type="tv" />} />
-            <Route path="/admin" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          </Routes>
-        </AuthProvider>
+      <AuthProvider>
+        <Navbar />
+        <Toast />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/search" element={<SearchResults />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/instructions" element={<Instructions />} />
+          <Route path="/requests" element={<MyRequests />} />
+          <Route path="/movie/:id" element={<MediaDetail type="movie" />} />
+          <Route path="/tv/:id" element={<MediaDetail type="tv" />} />
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        </Routes>
+      </AuthProvider>
     </ToastProvider>
   )
 }

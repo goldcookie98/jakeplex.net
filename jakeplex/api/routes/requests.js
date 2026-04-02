@@ -101,6 +101,48 @@ router.get('/me', async (req, res) => {
     }
 });
 
+// Public: cancel my request
+router.delete('/me/:id', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'Unauthorized: Plex token is required' });
+        }
+        const plexToken = authHeader.split(' ')[1];
+
+        const plexRes = await fetch('https://plex.tv/api/v2/user', {
+            headers: { 
+                'Accept': 'application/json',
+                'X-Plex-Token': plexToken,
+                'X-Plex-Client-Identifier': 'jakeplex-backend'
+            }
+        });
+
+        if (!plexRes.ok) {
+            return res.status(401).json({ error: 'Unauthorized: Invalid Plex Token' });
+        }
+
+        const plexUser = await plexRes.json();
+        const username = plexUser.username || plexUser.email;
+
+        const myRequests = await getRequestsByUser(username);
+        const reqToDelete = myRequests.find(r => r.id === req.params.id);
+
+        if (!reqToDelete) {
+            return res.status(403).json({ error: 'Request not found or not owned by you' });
+        }
+
+        if (reqToDelete.status !== 'pending') {
+            return res.status(400).json({ error: 'Can only cancel pending requests' });
+        }
+
+        await deleteRequest(req.params.id);
+        res.json({ message: 'Request cancelled' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Public: check if a specific item has been requested
 router.get('/check/:tmdbId/:mediaType', async (req, res) => {
     try {

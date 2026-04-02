@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
 export default function Navbar() {
     const location = useLocation();
+    const navigate = useNavigate();
     const { plexUser, loginWithPlex } = useAuth();
     const { addToast } = useToast();
     const [menuOpen, setMenuOpen] = useState(false);
@@ -31,6 +32,12 @@ export default function Navbar() {
         } catch (err) {
             addToast('Failed to sign in with Plex', 'error');
         }
+    };
+
+    const handleAdminLogin = () => {
+        setShowLoginModal(false);
+        setMenuOpen(false);
+        navigate('/admin');
     };
 
     return (
@@ -89,9 +96,9 @@ export default function Navbar() {
                         <button className="request-btn" style={{ background: '#e5a00d', color: '#000', border: 'none', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }} onClick={handlePlexLogin}>
                             Sign in with Plex
                         </button>
-                        <Link to="/admin" className="btn btn-secondary" onClick={() => setShowLoginModal(false)}>
+                        <button className="btn btn-secondary" onClick={handleAdminLogin}>
                             Admin Login
-                        </Link>
+                        </button>
                         <button style={{ marginTop: '8px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.9rem' }} onClick={() => setShowLoginModal(false)}>
                             Cancel
                         </button>

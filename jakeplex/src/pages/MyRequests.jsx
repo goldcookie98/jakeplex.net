@@ -9,6 +9,7 @@ export default function MyRequests() {
     const navigate = useNavigate();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [cancellingId, setCancellingId] = useState(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -45,6 +46,26 @@ export default function MyRequests() {
     const handleLogout = () => {
         logout();
         navigate('/');
+    };
+
+    const handleCancel = async (id) => {
+        if (!confirm('Are you sure you want to cancel this request?')) return;
+        setCancellingId(id);
+        try {
+            const res = await fetch(`/api/requests/me/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${plexUser.token}` }
+            });
+            if (res.ok) {
+                setRequests(prev => prev.filter(r => r.id !== id));
+            } else {
+                console.error("Failed to cancel");
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setCancellingId(null);
+        }
     };
 
     if (!plexUser) return null;
@@ -108,21 +129,33 @@ export default function MyRequests() {
                                             </div>
                                         </td>
                                         <td>
-                                            <span style={{ 
-                                                padding: '4px 10px', 
-                                                borderRadius: '20px', 
-                                                fontSize: '0.75rem', 
-                                                fontWeight: 'bold',
-                                                textTransform: 'uppercase',
-                                                background: req.status === 'approved' ? 'rgba(34, 197, 94, 0.2)' : 
-                                                          req.status === 'declined' ? 'rgba(239, 68, 68, 0.2)' : 
-                                                          'rgba(234, 179, 8, 0.2)',
-                                                color: req.status === 'approved' ? '#4ade80' : 
-                                                       req.status === 'declined' ? '#f87171' : 
-                                                       '#facc15'
-                                            }}>
-                                                {req.status}
-                                            </span>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+                                                <span style={{ 
+                                                    padding: '4px 10px', 
+                                                    borderRadius: '20px', 
+                                                    fontSize: '0.75rem', 
+                                                    fontWeight: 'bold',
+                                                    textTransform: 'uppercase',
+                                                    background: req.status === 'approved' ? 'rgba(34, 197, 94, 0.2)' : 
+                                                            req.status === 'declined' ? 'rgba(239, 68, 68, 0.2)' : 
+                                                            'rgba(234, 179, 8, 0.2)',
+                                                    color: req.status === 'approved' ? '#4ade80' : 
+                                                        req.status === 'declined' ? '#f87171' : 
+                                                        '#facc15'
+                                                }}>
+                                                    {req.status}
+                                                </span>
+                                                {req.status === 'pending' && (
+                                                    <button 
+                                                        className="btn btn-danger btn-sm"
+                                                        style={{ fontSize: '0.7rem', padding: '2px 8px' }}
+                                                        onClick={() => handleCancel(req.id)}
+                                                        disabled={cancellingId === req.id}
+                                                    >
+                                                        {cancellingId === req.id ? '...' : 'Cancel'}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                         <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                                             {new Date(req.created_at).toLocaleDateString()}

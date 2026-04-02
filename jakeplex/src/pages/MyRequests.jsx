@@ -10,6 +10,7 @@ export default function MyRequests() {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [cancellingId, setCancellingId] = useState(null);
+    const [confirmCancelId, setConfirmCancelId] = useState(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -48,9 +49,9 @@ export default function MyRequests() {
         navigate('/');
     };
 
-    const handleCancel = async (id) => {
-        if (!confirm('Are you sure you want to cancel this request?')) return;
+    const confirmAndCancel = async (id) => {
         setCancellingId(id);
+        setConfirmCancelId(null);
         try {
             const res = await fetch(`/api/requests/me/${id}`, {
                 method: 'DELETE',
@@ -146,14 +147,24 @@ export default function MyRequests() {
                                                     {req.status}
                                                 </span>
                                                 {req.status === 'pending' && (
-                                                    <button 
-                                                        className="btn btn-danger btn-sm"
-                                                        style={{ fontSize: '0.7rem', padding: '2px 8px' }}
-                                                        onClick={() => handleCancel(req.id)}
-                                                        disabled={cancellingId === req.id}
-                                                    >
-                                                        {cancellingId === req.id ? '...' : 'Cancel'}
-                                                    </button>
+                                                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                                                        {confirmCancelId === req.id ? (
+                                                            <>
+                                                                <span style={{ fontSize: '0.7rem', color: 'var(--danger)' }}>Sure?</span>
+                                                                <button className="btn btn-danger btn-sm" style={{ padding: '2px 6px', fontSize: '0.7rem' }} onClick={() => confirmAndCancel(req.id)}>Yes</button>
+                                                                <button className="btn btn-secondary btn-sm" style={{ padding: '2px 6px', fontSize: '0.7rem' }} onClick={() => setConfirmCancelId(null)}>No</button>
+                                                            </>
+                                                        ) : (
+                                                            <button 
+                                                                className="btn btn-danger btn-sm"
+                                                                style={{ fontSize: '0.7rem', padding: '2px 8px' }}
+                                                                onClick={() => setConfirmCancelId(req.id)}
+                                                                disabled={cancellingId === req.id}
+                                                            >
+                                                                {cancellingId === req.id ? 'Cancelling...' : 'Cancel'}
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
                                         </td>

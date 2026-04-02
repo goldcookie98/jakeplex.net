@@ -30,7 +30,7 @@ export default function MyRequests() {
                     data.sort((a, b) => {
                         if (a.status === 'pending' && b.status !== 'pending') return -1;
                         if (b.status === 'pending' && a.status !== 'pending') return 1;
-                        return new Date(b.created_at) - new Date(a.created_at);
+                        return new Date(b.requested_at) - new Date(a.requested_at);
                     });
                     setRequests(data);
                 }
@@ -169,7 +169,7 @@ export default function MyRequests() {
                                             </div>
                                         </td>
                                         <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                            {new Date(req.created_at).toLocaleDateString()}
+                                            {new Date(req.requested_at).toLocaleDateString()}
                                         </td>
                                     </tr>
                                 ))}

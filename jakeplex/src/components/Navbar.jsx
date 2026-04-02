@@ -96,7 +96,7 @@ export default function Navbar() {
                         <button className="request-btn" style={{ background: '#e5a00d', color: '#000', border: 'none', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }} onClick={handlePlexLogin}>
                             Sign in with Plex
                         </button>
-                        <button className="btn btn-secondary" onClick={handleAdminLogin}>
+                        <button className="btn btn-secondary" onPointerDown={handleAdminLogin} onClick={handleAdminLogin}>
                             Admin Login
                         </button>
                         <button style={{ marginTop: '8px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.9rem' }} onClick={() => setShowLoginModal(false)}>

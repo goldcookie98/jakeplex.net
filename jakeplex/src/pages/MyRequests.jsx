@@ -50,8 +50,8 @@ export default function MyRequests() {
     if (!plexUser) return null;
 
     return (
-        <div className="page dashboard">
-            <div className="container">
+        <div className="page">
+            <div className="container dashboard">
                 <div className="dashboard-header" style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         {plexUser.thumb ? (

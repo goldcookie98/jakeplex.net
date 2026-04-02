@@ -414,16 +414,29 @@ export default function AdminDashboard() {
                                             style={{ cursor: 'pointer' }}
                                             onClick={() => setSelectedRequest(req)}
                                         >
-                                            <span style={{ fontWeight: 500, color: 'var(--accent-secondary)', textDecoration: 'underline' }}>
-                                                {req.requested_by || 'Anonymous'}
-                                            </span>
-                                            {req.estimated_user && (
-                                                <div style={{ marginTop: '4px' }}>
-                                                    <span className="badge badge-pending" style={{ fontSize: '0.7rem', backgroundColor: 'var(--accent-primary)', color: '#1a1a1a' }}>
-                                                        Known: {req.estimated_user}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                {req.plex_thumb ? (
+                                                    <img src={req.plex_thumb} alt="Avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0 }} />
+                                                ) : (
+                                                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.9rem', color: '#1a1a1a', flexShrink: 0 }}>
+                                                        {(req.requested_by || 'A').charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                                        {req.requested_by || 'Anonymous'}
                                                     </span>
+                                                    {req.plex_email ? (
+                                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                            {req.plex_email}
+                                                        </span>
+                                                    ) : req.estimated_user ? (
+                                                        <span className="badge badge-pending" style={{ fontSize: '0.65rem', backgroundColor: 'var(--accent-primary)', color: '#1a1a1a', marginTop: '2px', alignSelf: 'flex-start' }}>
+                                                            Known: {req.estimated_user}
+                                                        </span>
+                                                    ) : null}
                                                 </div>
-                                            )}
+                                            </div>
                                         </td>
                                         <td data-label="Status">
                                             <span className={`badge badge-${req.status}`}>

@@ -50,6 +50,8 @@ export const addRequest = async (data) => {
     ip_address: data.ip_address || null,
     location_info: data.location_info || null,
     estimated_user: data.estimated_user || null,
+    plex_email: data.plex_email || null,
+    plex_thumb: data.plex_thumb || null,
     requested_at: new Date().toISOString(),
     status: 'pending'
   });
@@ -60,6 +62,16 @@ export const addRequest = async (data) => {
 export const getRequests = async () => {
   if (!requestsCollection) throw new Error(`Database not connected. Details: ${firebaseInitError}`);
   const snapshot = await requestsCollection.orderBy('requested_at', 'desc').get();
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+// Get requests by user
+export const getRequestsByUser = async (username) => {
+  if (!requestsCollection) throw new Error("Database not connected.");
+  const snapshot = await requestsCollection
+    .where('requested_by', '==', username)
+    .orderBy('requested_at', 'desc')
+    .get();
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 

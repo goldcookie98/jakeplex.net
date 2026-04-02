@@ -1,20 +1,36 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 export default function Navbar() {
     const location = useLocation();
+    const { plexUser, loginWithPlex } = useAuth();
+    const { addToast } = useToast();
     const [menuOpen, setMenuOpen] = useState(false);
+    const [showLoginModal, setShowLoginModal] = useState(false);
 
     // Close menu on route change
     useEffect(() => {
         setMenuOpen(false);
     }, [location.pathname]);
 
-    // Prevent body scroll when menu is open
+    // Prevent body scroll when menu or modal is open
     useEffect(() => {
-        document.body.style.overflow = menuOpen ? 'hidden' : '';
+        document.body.style.overflow = (menuOpen || showLoginModal) ? 'hidden' : '';
         return () => { document.body.style.overflow = ''; };
-    }, [menuOpen]);
+    }, [menuOpen, showLoginModal]);
+
+    const handlePlexLogin = async () => {
+        try {
+            await loginWithPlex();
+            setShowLoginModal(false);
+            setMenuOpen(false);
+            addToast('Successfully signed in to Plex!', 'success');
+        } catch (err) {
+            addToast('Failed to sign in with Plex', 'error');
+        }
+    };
 
     return (
         <nav className="navbar">
@@ -39,7 +55,13 @@ export default function Navbar() {
                 <Link to="/" className={`navbar-link ${location.pathname === '/' ? 'active' : ''}`}>Home</Link>
                 <Link to="/library" className={`navbar-link ${location.pathname === '/library' ? 'active' : ''}`}>On Plex</Link>
                 <Link to="/instructions" className={`navbar-link ${location.pathname === '/instructions' ? 'active' : ''}`}>Instructions</Link>
-                <Link to="/admin" className={`navbar-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}>Admin</Link>
+                {plexUser ? (
+                    <Link to="/requests" className={`navbar-link ${location.pathname === '/requests' ? 'active' : ''}`}>My Requests</Link>
+                ) : (
+                    <button className="navbar-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setShowLoginModal(true)}>
+                        Sign in
+                    </button>
+                )}
             </div>
 
             {/* Mobile overlay + drawer */}
@@ -48,8 +70,33 @@ export default function Navbar() {
                 <Link to="/" className={`mobile-nav-link ${location.pathname === '/' ? 'active' : ''}`}>Home</Link>
                 <Link to="/library" className={`mobile-nav-link ${location.pathname === '/library' ? 'active' : ''}`}>On Plex</Link>
                 <Link to="/instructions" className={`mobile-nav-link ${location.pathname === '/instructions' ? 'active' : ''}`}>Instructions</Link>
-                <Link to="/admin" className={`mobile-nav-link ${location.pathname.startsWith('/admin') ? 'active' : ''}`}>Admin</Link>
+                {plexUser ? (
+                    <Link to="/requests" className={`mobile-nav-link ${location.pathname === '/requests' ? 'active' : ''}`}>My Requests</Link>
+                ) : (
+                    <button className="mobile-nav-link" style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%' }} onClick={() => setShowLoginModal(true)}>
+                        Sign in
+                    </button>
+                )}
             </div>
+
+            {/* Login Modal */}
+            {showLoginModal && (
+                <>
+                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1100, backdropFilter: 'blur(5px)' }} onClick={() => setShowLoginModal(false)} />
+                    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'var(--bg-glass)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-xl)', padding: '32px', zIndex: 1101, width: '90%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center' }}>
+                        <h2 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>Sign In</h2>
+                        <button className="request-btn" style={{ background: '#e5a00d', color: '#000' }} onClick={handlePlexLogin}>
+                            Sign in with Plex
+                        </button>
+                        <Link to="/admin" className="btn btn-secondary" onClick={() => setShowLoginModal(false)}>
+                            Admin Login
+                        </Link>
+                        <button style={{ marginTop: '8px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.9rem' }} onClick={() => setShowLoginModal(false)}>
+                            Cancel
+                        </button>
+                    </div>
+                </>
+            )}
         </nav>
     );
 }

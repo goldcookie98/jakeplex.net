@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -80,12 +81,12 @@ export default function Navbar() {
             </div>
 
             {/* Login Modal */}
-            {showLoginModal && (
+            {showLoginModal && typeof document !== 'undefined' && createPortal(
                 <>
                     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1100, backdropFilter: 'blur(5px)' }} onClick={() => setShowLoginModal(false)} />
-                    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'var(--bg-glass)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-xl)', padding: '32px', zIndex: 1101, width: '90%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center' }}>
+                    <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'var(--bg-primary)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-xl)', padding: '32px', zIndex: 1101, width: '90%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center' }}>
                         <h2 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>Sign In</h2>
-                        <button className="request-btn" style={{ background: '#e5a00d', color: '#000' }} onClick={handlePlexLogin}>
+                        <button className="request-btn" style={{ background: '#e5a00d', color: '#000', border: 'none', padding: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }} onClick={handlePlexLogin}>
                             Sign in with Plex
                         </button>
                         <Link to="/admin" className="btn btn-secondary" onClick={() => setShowLoginModal(false)}>
@@ -95,7 +96,8 @@ export default function Navbar() {
                             Cancel
                         </button>
                     </div>
-                </>
+                </>,
+                document.body
             )}
         </nav>
     );

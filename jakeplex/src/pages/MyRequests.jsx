@@ -11,6 +11,7 @@ export default function MyRequests() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         if (!plexUser) {
             navigate('/');
             return;

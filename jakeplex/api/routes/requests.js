@@ -7,7 +7,30 @@ const router = Router();
 // Public: submit a request
 router.post('/', async (req, res) => {
     try {
-        const { tmdb_id, media_type, title, poster_path, backdrop_path, overview, year, requested_by, device_info } = req.body;
+        const { tmdb_id, media_type, title, poster_path, backdrop_path, overview, year, device_info } = req.body;
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'Unauthorized: Plex token is required to make a request' });
+        }
+
+        const plexToken = authHeader.split(' ')[1];
+
+        // Securely verify token with Plex
+        const plexRes = await fetch('https://plex.tv/api/v2/user', {
+            headers: { 
+                'Accept': 'application/json',
+                'X-Plex-Token': plexToken,
+                'X-Plex-Client-Identifier': 'jakeplex-backend'
+            }
+        });
+
+        if (!plexRes.ok) {
+            return res.status(401).json({ error: 'Unauthorized: Invalid Plex Token' });
+        }
+
+        const plexUser = await plexRes.json();
+        const requested_by = plexUser.username || plexUser.email; // Guaranteed verified name
         const ip_address = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.ip;
         
         const location_info = {

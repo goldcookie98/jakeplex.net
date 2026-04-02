@@ -545,6 +545,7 @@ h6 {
   width: 100%;
   max-width: 640px;
   position: relative;
+  margin: 0 auto;
 }
 
 .search-bar {
@@ -709,8 +710,9 @@ h6 {
 
 /* ===== Recently Added Widget ===== */
 .recently-added-container {
-  margin-top: 48px;
+  margin: 48px auto 0;
   width: 100%;
+  max-width: 720px;
   animation: fadeInUp 0.8s ease forwards;
 }
 
@@ -740,13 +742,23 @@ h6 {
 
 @media (max-width: 768px) {
   .recently-added-grid {
-    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 }
 
 @media (max-width: 480px) {
   .recently-added-grid {
-    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .recently-added-card-title {
+    font-size: 0.85rem;
+  }
+  .recently-added-meta {
+    font-size: 0.7rem;
+    flex-wrap: wrap;
+  }
+  .recently-added-overlay {
+    padding: 20px 8px 8px;
   }
 }
 
@@ -760,7 +772,7 @@ h6 {
   transition: all var(--transition-base);
   opacity: 0;
   animation: fadeInUp 0.5s ease forwards;
-  aspect-ratio: 16/9; /* Widescreen ratio for TV/Movie banners or cut poster */
+  aspect-ratio: 2/3; /* Portrait ratio for posters */
 }
 
 .recently-added-card:hover {
@@ -800,10 +812,11 @@ h6 {
   right: 0;
   padding: 30px 16px 16px;
   background: linear-gradient(transparent, rgba(10, 14, 26, 0.95) 80%);
-  text-align: left;
+  text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  align-items: center;
 }
 
 .recently-added-card-title {
@@ -823,6 +836,7 @@ h6 {
 .recently-added-meta {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-size: 0.8rem;
   color: var(--text-secondary);

@@ -2,19 +2,19 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import SeasonCard from '../components/SeasonCard';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 
 const IMG_BASE = 'https://image.tmdb.org/t/p';
 
 export default function MediaDetail({ type }) {
     const { id } = useParams();
     const { addToast } = useToast();
+    const { plexUser, loginWithPlex } = useAuth();
     const [detail, setDetail] = useState(null);
     const [loading, setLoading] = useState(true);
     const [requested, setRequested] = useState(false);
     const [requesting, setRequesting] = useState(false);
     const [onPlex, setOnPlex] = useState(false);
-    const [showNamePrompt, setShowNamePrompt] = useState(false);
-    const [requesterName, setRequesterName] = useState('');
 
     useEffect(() => {
         const fetchDetail = async () => {
@@ -48,18 +48,26 @@ export default function MediaDetail({ type }) {
         fetchDetail();
     }, [id, type]);
 
-    const handleRequestClick = () => {
+    const handleRequestClick = async () => {
         if (requesting || requested || onPlex) return;
-        setShowNamePrompt(true);
+
+        if (!plexUser) {
+            try {
+                await loginWithPlex();
+                // We don't automatically request right after login, 
+                // the UI will update and the user can click the button again.
+                addToast('Successfully signed in to Plex!', 'success');
+            } catch (err) {
+                addToast('Failed to sign in with Plex', 'error');
+            }
+            return;
+        }
+
+        handleSubmitRequest();
     };
 
     const handleSubmitRequest = async () => {
-        if (!requesterName.trim()) {
-            addToast('Please enter your name', 'error');
-            return;
-        }
         setRequesting(true);
-        setShowNamePrompt(false);
 
         try {
             const title = detail.title || detail.name;
@@ -80,7 +88,10 @@ export default function MediaDetail({ type }) {
 
             const res = await fetch('/api/requests', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${plexUser.token}`
+                },
                 body: JSON.stringify({
                     tmdb_id: detail.id,
                     media_type: type,
@@ -89,7 +100,6 @@ export default function MediaDetail({ type }) {
                     backdrop_path: detail.backdrop_path,
                     overview: detail.overview,
                     year,
-                    requested_by: requesterName.trim(),
                     device_info: deviceInfo,
                 }),
             });
@@ -210,42 +220,33 @@ export default function MediaDetail({ type }) {
                             )}
 
                             <div className="detail-actions">
-                                {!showNamePrompt ? (
-                                    <button
-                                        className={`request-btn ${onPlex || requested ? 'requested' : ''}`}
-                                        onClick={handleRequestClick}
-                                        disabled={onPlex || requesting || requested}
-                                    >
-                                        {onPlex
-                                            ? '✓ Already on Plex'
-                                            : requesting
-                                                ? 'Submitting...'
-                                                : requested
-                                                    ? '✓ Requested'
+                                <button
+                                    className={`request-btn ${onPlex || requested ? 'requested' : ''}`}
+                                    onClick={handleRequestClick}
+                                    disabled={onPlex || requesting || requested}
+                                >
+                                    {onPlex
+                                        ? '✓ Already on Plex'
+                                        : requesting
+                                            ? 'Submitting...'
+                                            : requested
+                                                ? '✓ Requested'
+                                                : !plexUser
+                                                    ? 'Sign in with Plex to Request'
                                                     : '📥 Request This'}
-                                    </button>
-                                ) : (
-                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                        <input
-                                            type="text"
-                                            className="form-input"
-                                            placeholder="Your name..."
-                                            value={requesterName}
-                                            onChange={(e) => setRequesterName(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleSubmitRequest()}
-                                            maxLength={25}
-                                            autoFocus
-                                            style={{ maxWidth: '200px' }}
-                                        />
-                                        <button className="request-btn" onClick={handleSubmitRequest}>
-                                            Confirm Request
-                                        </button>
-                                        <button
-                                            className="btn btn-secondary btn-sm"
-                                            onClick={() => setShowNamePrompt(false)}
-                                        >
-                                            Cancel
-                                        </button>
+                                </button>
+                                {plexUser && !onPlex && !requested && (
+                                    <div style={{ marginLeft: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        {plexUser.thumb ? (
+                                            <img src={plexUser.thumb} alt={plexUser.username} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                                        ) : (
+                                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                                                {plexUser.username.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                            Logged in as <strong>{plexUser.username}</strong>
+                                        </span>
                                     </div>
                                 )}
                             </div>

@@ -101,7 +101,7 @@ router.get('/library', async (req, res) => {
 
         for (const dir of directories) {
             if (dir.type === 'movie' || dir.type === 'show') {
-                const promise = fetch(`${cleanPlexUrl}/library/sections/${dir.key}/all?X-Plex-Token=${plexToken}`, {
+                const promise = fetch(`${cleanPlexUrl}/library/sections/${dir.key}/all?sort=addedAt%3Adesc&X-Plex-Token=${plexToken}`, {
                     headers: { 'Accept': 'application/json' }
                 }).then(async (libRes) => {
                     if (libRes.ok) {
@@ -153,10 +153,6 @@ router.get('/recent-unrequested', async (req, res) => {
 
         const cleanPlexUrl = plexUrl.endsWith('/') ? plexUrl.slice(0, -1) : plexUrl;
 
-        // Fetch requests from DB
-        const requests = await getRequests();
-        const requestedTitles = new Set(requests.map(r => r.title?.toLowerCase().trim()));
-
         // 1. Get library sections
         const sectionsRes = await fetch(`${cleanPlexUrl}/library/sections?X-Plex-Token=${plexToken}`, {
             headers: { 'Accept': 'application/json' }
@@ -171,7 +167,7 @@ router.get('/recent-unrequested', async (req, res) => {
 
         for (const dir of directories) {
             if (dir.type === 'movie' || dir.type === 'show') {
-                const promise = fetch(`${cleanPlexUrl}/library/sections/${dir.key}/all?X-Plex-Token=${plexToken}`, {
+                const promise = fetch(`${cleanPlexUrl}/library/sections/${dir.key}/all?sort=addedAt%3Adesc&X-Plex-Token=${plexToken}`, {
                     headers: { 'Accept': 'application/json' }
                 }).then(async (libRes) => {
                     if (libRes.ok) {
@@ -203,10 +199,7 @@ router.get('/recent-unrequested', async (req, res) => {
         // Sort by most recently added
         allItems.sort((a, b) => b.addedAt - a.addedAt);
 
-        // Filter out requested items
-        const unrequestedItems = allItems.filter(item => !requestedTitles.has(item.title?.toLowerCase().trim()));
-
-        res.json({ items: unrequestedItems.slice(0, 4) });
+        res.json({ items: allItems.slice(0, 4) });
     } catch (err) {
         console.error('Plex Recent-Unrequested Error:', err.message, err.cause);
         res.json({ items: [], error: `Fetch failed: ${err.message}` });

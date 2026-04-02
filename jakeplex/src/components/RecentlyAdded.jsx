@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function RecentlyAdded() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchRecent = async () => {
@@ -22,6 +24,39 @@ export default function RecentlyAdded() {
         fetchRecent();
     }, []);
 
+    const handleCardClick = async (item) => {
+        try {
+            // Find the TMDB match
+            const res = await fetch(`/api/tmdb/search?q=${encodeURIComponent(item.title)}`);
+            const data = await res.json();
+            
+            const tmdbType = item.type === 'show' ? 'tv' : 'movie';
+            const results = data.results || [];
+            
+            // Best match: right media type and matches name
+            let bestMatch = results.find(r => {
+                if (r.media_type !== tmdbType) return false;
+                const rTitle = (r.title || r.name || '').toLowerCase();
+                const iTitle = (item.title || '').toLowerCase();
+                return rTitle.includes(iTitle) || iTitle.includes(rTitle);
+            });
+            
+            // If no exact title match, just take first of correct type
+            if (!bestMatch) {
+                bestMatch = results.find(r => r.media_type === tmdbType);
+            }
+            
+            if (bestMatch) {
+                navigate(`/${bestMatch.media_type}/${bestMatch.id}`);
+            } else {
+                navigate(`/search?q=${encodeURIComponent(item.title)}`);
+            }
+        } catch (err) {
+            // Fallback
+            navigate(`/search?q=${encodeURIComponent(item.title)}`);
+        }
+    };
+
     if (loading) {
         return (
             <div className="recently-added-container">
@@ -40,14 +75,16 @@ export default function RecentlyAdded() {
             <div className="recently-added-grid">
                 {items.map((item, index) => {
                     const title = item.title;
-                    const year = item.year;
-                    const mediaType = item.type;
                     
                     return (
                         <div 
                             key={item.id || index}
                             className="recently-added-card"
-                            style={{ animationDelay: `${index * 100}ms` }}
+                            style={{ animationDelay: `${index * 100}ms`, cursor: 'pointer' }}
+                            onClick={() => handleCardClick(item)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => e.key === 'Enter' && handleCardClick(item)}
                         >
                             {item.poster_path ? (
                                 <img
@@ -59,15 +96,6 @@ export default function RecentlyAdded() {
                             ) : (
                                 <div className="recently-added-no-poster">🎬</div>
                             )}
-                            <div className="recently-added-overlay">
-                                <div className="recently-added-card-title">{title}</div>
-                                <div className="recently-added-meta">
-                                    {year && <span>{year}</span>}
-                                    <span className={`badge badge-${mediaType === 'movie' ? 'movie' : 'tv'}`}>
-                                        {mediaType === 'movie' ? 'Movie' : 'TV'}
-                                    </span>
-                                </div>
-                            </div>
                         </div>
                     );
                 })}

@@ -70,9 +70,11 @@ export const getRequestsByUser = async (username) => {
   if (!requestsCollection) throw new Error("Database not connected.");
   const snapshot = await requestsCollection
     .where('requested_by', '==', username)
-    .orderBy('requested_at', 'desc')
     .get();
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+  const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  // Sort manually to avoid requiring a Firestore composite index
+  return docs.sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at));
 };
 
 // Get a request by TMDB ID

@@ -17,7 +17,28 @@ export function AuthProvider({ children }) {
     };
 
     useEffect(() => {
-        const checkToken = async () => {
+        const initializeAuth = async () => {
+            setIsLoading(true);
+            
+            // Check if we just returned from a Plex redirect flow
+            const pendingPinId = localStorage.getItem('plex_auth_pin_id');
+            if (pendingPinId) {
+                try {
+                    const checkRes = await fetch(`https://plex.tv/api/v2/pins/${pendingPinId}`, { headers });
+                    const checkData = await checkRes.json();
+                    
+                    if (checkData.authToken) {
+                        localStorage.setItem('plex_token', checkData.authToken);
+                        // Clean url if we want, or just let routing handle it
+                    }
+                } catch (e) {
+                    console.error("Failed to verify returning Plex PIN", e);
+                } finally {
+                    localStorage.removeItem('plex_auth_pin_id');
+                }
+            }
+
+            // Normal token check
             const token = localStorage.getItem('plex_token');
             if (!token) {
                 setIsLoading(false);
@@ -47,7 +68,7 @@ export function AuthProvider({ children }) {
             }
         };
 
-        checkToken();
+        initializeAuth();
     }, []);
 
     const logout = () => {
@@ -64,61 +85,20 @@ export function AuthProvider({ children }) {
             });
             const pinData = await pinRes.json();
             
-            // 2. Open login window
-            const authUrl = `https://app.plex.tv/auth/#!?clientID=${PLEX_CLIENT_ID}&code=${pinData.code}&context[device][product]=${encodeURIComponent(APP_NAME)}`;
-            const popup = window.open(authUrl, 'PlexAuth', 'width=600,height=700');
+            // 2. Save the PIN ID so we can verify it when the user returns
+            localStorage.setItem('plex_auth_pin_id', pinData.id);
             
-            // 3. Poll for token
-            return new Promise((resolve, reject) => {
-                let pollInterval;
-                const checkPin = async () => {
-                    if (popup && popup.closed) {
-                        clearInterval(pollInterval);
-                        reject(new Error("Login window closed"));
-                        return;
-                    }
-
-                    try {
-                        const checkRes = await fetch(`https://plex.tv/api/v2/pins/${pinData.id}`, { headers });
-                        const checkData = await checkRes.json();
-                        
-                        if (checkData.authToken) {
-                            clearInterval(pollInterval);
-                            if (popup) popup.close();
-                            
-                            localStorage.setItem('plex_token', checkData.authToken);
-                            
-                            // Fetch user info immediately
-                            const userRes = await fetch('https://plex.tv/api/v2/user', {
-                                headers: { ...headers, 'X-Plex-Token': checkData.authToken }
-                            });
-                            
-                            if (userRes.ok) {
-                                const userData = await userRes.json();
-                                setPlexUser({
-                                    username: userData.username,
-                                    email: userData.email,
-                                    thumb: userData.thumb,
-                                    token: checkData.authToken
-                                });
-                                resolve(true);
-                            } else {
-                                reject(new Error("Failed to fetch user details."));
-                            }
-                        }
-                    } catch (e) {
-                         // wait for next poll
-                    }
-                };
-
-                pollInterval = setInterval(checkPin, 2000);
-                
-                // Timeout after 5 minutes
-                setTimeout(() => {
-                    clearInterval(pollInterval);
-                    reject(new Error("Login timed out"));
-                }, 5 * 60 * 1000);
-            });
+            // 3. Redirect the browser directly to Plex
+            // We append a forwardUrl so Plex knows to send them back exactly where they were
+            const forwardUrl = encodeURIComponent(window.location.href);
+            const authUrl = `https://app.plex.tv/auth/#!?clientID=${PLEX_CLIENT_ID}&code=${pinData.code}&context[device][product]=${encodeURIComponent(APP_NAME)}&forwardUrl=${forwardUrl}`;
+            
+            window.location.href = authUrl;
+            
+            // Note: Since we are hard-redirecting the entire webpage, anything below this point 
+            // will not execute. The app will reboot entirely when returning.
+            // We return a never-resolving promise so the UI loading state stays active until the page unloads.
+            return new Promise(() => {});
             
         } catch (error) {
             console.error("Plex Login Initialization Failed:", error);

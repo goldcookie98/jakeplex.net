@@ -4,6 +4,40 @@ import { useToast } from '../context/ToastContext';
 
 const IMG_BASE = 'https://image.tmdb.org/t/p/w92';
 
+// Internal media server links (local network only)
+const SONARR_URL = 'http://100.95.16.108:30113';
+const RADARR_URL = 'http://100.95.16.108:30025';
+const RADARR_API_KEY = 'cbc86ec4110741028822e35e6702c6cc';
+
+const toSonarrSlug = (title) =>
+    title.toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+
+const openInSonarr = (title) => {
+    window.open(`${SONARR_URL}/series/${toSonarrSlug(title)}`, '_blank', 'noopener');
+};
+
+const openInRadarr = async (tmdbId) => {
+    try {
+        const res = await fetch(
+            `${RADARR_URL}/api/v3/movie?tmdbId=${tmdbId}&apikey=${RADARR_API_KEY}`
+        );
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+            window.open(`${RADARR_URL}/movie/${data[0].id}`, '_blank', 'noopener');
+        } else {
+            // Fallback: open Radarr root if not found
+            window.open(RADARR_URL, '_blank', 'noopener');
+        }
+    } catch (err) {
+        console.error('Radarr lookup failed:', err);
+        window.open(RADARR_URL, '_blank', 'noopener');
+    }
+};
+
 const guessDeviceModel = (deviceInfo) => {
     if (!deviceInfo || !deviceInfo.userAgent) return 'Unknown Device';
     
@@ -396,7 +430,21 @@ export default function AdminDashboard() {
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <div className="request-row-title">{req.title}</div>
+                                                    <div
+                                                        className="request-row-title"
+                                                        style={{ cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'var(--accent-primary)', textUnderlineOffset: '3px' }}
+                                                        title={req.media_type === 'tv' ? `Open in Sonarr` : `Open in Radarr`}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (req.media_type === 'tv') {
+                                                                openInSonarr(req.title);
+                                                            } else {
+                                                                openInRadarr(req.tmdb_id);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {req.title}
+                                                    </div>
                                                     {req.year && (
                                                         <div className="request-row-year">{req.year}</div>
                                                     )}

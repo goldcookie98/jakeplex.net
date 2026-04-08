@@ -20,22 +20,10 @@ const openInSonarr = (title) => {
     window.open(`${SONARR_URL}/series/${toSonarrSlug(title)}`, '_blank', 'noopener');
 };
 
-const openInRadarr = async (tmdbId) => {
-    try {
-        const res = await fetch(
-            `${RADARR_URL}/api/v3/movie?tmdbId=${tmdbId}&apikey=${RADARR_API_KEY}`
-        );
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-            window.open(`${RADARR_URL}/movie/${data[0].id}`, '_blank', 'noopener');
-        } else {
-            // Fallback: open Radarr root if not found
-            window.open(RADARR_URL, '_blank', 'noopener');
-        }
-    } catch (err) {
-        console.error('Radarr lookup failed:', err);
-        window.open(RADARR_URL, '_blank', 'noopener');
-    }
+const openInRadarr = (tmdbId) => {
+    // Use a direct navigation URL that Radarr understands to avoid CORS fetch issues.
+    // The 'add/new?term=tmdb:ID' URL opens the movie in Radarr directly.
+    window.open(`${RADARR_URL}/add/new?term=tmdb:${tmdbId}`, '_blank', 'noopener');
 };
 
 const guessDeviceModel = (deviceInfo) => {

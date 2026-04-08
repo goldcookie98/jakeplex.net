@@ -409,7 +409,6 @@ export default function AdminDashboard() {
                                             </span>
                                         </td>
                                         <td 
-                                            className="truncate-cell" 
                                             data-label="Requested By" 
                                             style={{ cursor: 'pointer' }}
                                             onClick={() => setSelectedRequest(req)}

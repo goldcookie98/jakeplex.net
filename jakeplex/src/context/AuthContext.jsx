@@ -2,7 +2,11 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
-const PLEX_CLIENT_ID = 'jakeplex-' + Math.random().toString(36).substring(2, 15);
+let PLEX_CLIENT_ID = localStorage.getItem('plex_client_id');
+if (!PLEX_CLIENT_ID) {
+    PLEX_CLIENT_ID = 'jakeplex-' + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('plex_client_id', PLEX_CLIENT_ID);
+}
 const APP_NAME = 'JakePlex';
 
 export function AuthProvider({ children }) {

@@ -19,7 +19,7 @@ export default function SearchBar({ initialQuery = '', autoFocus = false, compac
                 <span className="search-bar-icon">🔍</span>
                 <input
                     type="search"
-                    placeholder="brandwood fucking sucks mad dick"
+                    placeholder="hound dog crying all the time"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     autoFocus={autoFocus}

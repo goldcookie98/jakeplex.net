@@ -1765,3 +1765,32 @@ h6 {
   50% { transform: scale(1.05); filter: brightness(1.2); }
 }
 
+
+.server-down-explanation {
+  max-width: 800px;
+  margin: 20px auto 0;
+  font-size: 1.1rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.6;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+}
+
+.server-down-explanation p {
+  margin-bottom: 12px;
+}
+
+.server-down-explanation p:last-child {
+  margin-bottom: 0;
+}
+
+.server-down-explanation strong {
+  color: #ffca28;
+  font-weight: 700;
+  margin-right: 4px;
+}

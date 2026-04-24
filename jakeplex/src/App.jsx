@@ -18,6 +18,10 @@ function App() {
       <AuthProvider>
         <div className="server-down-banner">
           <span>SERVER DOWN</span>
+          <div className="server-down-explanation">
+            <p><strong>Root Cause:</strong> An external hard drive enclosure lost connection to the server due to a brief voltage drop caused by a nearby air conditioning unit's inrush current. This caused ZFS storage pools to enter an error state.</p>
+            <p><strong>Status:</strong> No data was lost. Last verified data integrity check (scrub) completed successfully on 19th April 2026 with zero errors.</p>
+          </div>
         </div>
         <Navbar />
         <Toast />

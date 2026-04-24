@@ -1724,9 +1724,9 @@ h6 {
     flex-wrap: wrap;
   }
 }
-/* ===== Server Down Banner ===== */
-.server-down-banner {
-  background: linear-gradient(90deg, #ff0000, #b91c1c, #ff0000);
+/* ===== Server Up Banner ===== */
+.server-up-banner {
+  background: linear-gradient(90deg, #059669, #10b981, #059669);
   background-size: 200% auto;
   color: white;
   text-align: center;
@@ -1735,7 +1735,7 @@ h6 {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  box-shadow: 0 10px 40px rgba(220, 38, 38, 0.6);
+  box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
   position: relative;
   z-index: 10001;
   display: flex;
@@ -1744,19 +1744,19 @@ h6 {
   justify-content: center;
   gap: 10px;
   animation: gradientShift 3s linear infinite;
-  border-bottom: 8px solid #7f1d1d;
+  border-bottom: 8px solid #064e3b;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
-.server-down-banner::before,
-.server-down-banner::after {
-  content: '⚠️ WARNING ⚠️';
+.server-up-banner::before,
+.server-up-banner::after {
+  content: '✅ SYSTEM RESTORED ✅';
   font-size: 1rem;
   letter-spacing: 0.5em;
   opacity: 0.8;
 }
 
-.server-down-banner span {
+.server-up-banner span {
   animation: pulse-banner 1.5s ease-in-out infinite;
 }
 
@@ -1765,8 +1765,7 @@ h6 {
   50% { transform: scale(1.05); filter: brightness(1.2); }
 }
 
-
-.server-down-explanation {
+.server-up-explanation {
   max-width: 800px;
   margin: 20px auto 0;
   font-size: 1.1rem;
@@ -1781,16 +1780,16 @@ h6 {
   text-align: left;
 }
 
-.server-down-explanation p {
+.server-up-explanation p {
   margin-bottom: 12px;
 }
 
-.server-down-explanation p:last-child {
+.server-up-explanation p:last-child {
   margin-bottom: 0;
 }
 
-.server-down-explanation strong {
-  color: #ffca28;
+.server-up-explanation strong {
+  color: #10b981;
   font-weight: 700;
   margin-right: 4px;
 }

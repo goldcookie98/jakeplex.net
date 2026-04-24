@@ -10,6 +10,12 @@
 - **Changes**:
     *   Updated `src/App.jsx` to include the specific technical details about the power surge and ZFS pool status.
     *   Added `.server-down-explanation` styles to `src/index.css` for better readability.
+## 2026-04-24: Server Recovery
+- **Task**: Update the banner to reflect that the server is back online.
+- **Changes**:
+    - Changed "SERVER DOWN" to "SERVER UP" in `src/App.jsx`.
+    - Updated banner colors in `src/index.css` from red to a vibrant green theme.
+    - Updated status messaging to confirm system restoration.
 
 ---
 *Created by Antigravity*

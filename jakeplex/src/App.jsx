@@ -16,6 +16,9 @@ function App() {
   return (
     <ToastProvider>
       <AuthProvider>
+        <div className="server-down-banner">
+          <span>SERVER DOWN</span>
+        </div>
         <Navbar />
         <Toast />
         <Routes>

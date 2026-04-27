@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="JakePlex - Request your favorite movies and TV shows" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <title>JakePlex</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <canvas id="starfield"></canvas>
+  <div id="cursor-glow"></div>
+  <script type="module" src="/src/main.jsx"></script>
+  <script>
+    (function(){
+      const c=document.getElementById('starfield');
+      const ctx=c.getContext('2d');
+      let stars=[];
+      function resize(){c.width=window.innerWidth;c.height=window.innerHeight;}
+      resize();window.addEventListener('resize',resize);
+      for(let i=0;i<220;i++){
+        stars.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,r:Math.random()*1.4+0.15,base:Math.random()*0.7+0.1,speed:Math.random()*0.04+0.01,ts:Math.random()*Math.PI*2,tsp:Math.random()*0.015+0.003,hue:Math.random()<0.15?(Math.random()<0.5?260:185):0,col:Math.random()<0.15});
+      }
+      let t=0;
+      function draw(){
+        ctx.clearRect(0,0,c.width,c.height);t+=0.008;
+        stars.forEach(s=>{
+          const op=s.base*(0.5+0.5*Math.sin(t*s.tsp*60+s.ts));
+          ctx.fillStyle=s.col?`hsla(${s.hue},80%,80%,${op})`:`rgba(255,255,255,${op})`;
+          ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+          s.y-=s.speed;if(s.y<-2){s.y=c.height+2;s.x=Math.random()*c.width;}
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+    (function(){
+      const el=document.getElementById('cursor-glow');
+      let tx=-250,ty=-250,cx=-250,cy=-250;
+      window.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;});
+      (function loop(){cx+=(tx-cx)*0.12;cy+=(ty-cy)*0.12;el.style.left=cx+'px';el.style.top=cy+'px';requestAnimationFrame(loop);})();
+    })();
+  </script>
+</body>
+
+</html>

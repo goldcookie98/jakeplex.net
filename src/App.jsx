@@ -1,0 +1,51 @@
+import { Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import Navbar from './components/Navbar'
+import Toast from './components/Toast'
+import Home from './pages/Home'
+import SearchResults from './pages/SearchResults'
+import MediaDetail from './pages/MediaDetail'
+import Library from './pages/Library'
+import Instructions from './pages/Instructions'
+import AdminLogin from './pages/AdminLogin'
+import AdminDashboard from './pages/AdminDashboard'
+import MyRequests from './pages/MyRequests'
+import { ToastProvider } from './context/ToastContext'
+import { AuthProvider } from './context/AuthContext'
+
+const NO_SCROLL_ROUTES = ['/', '/admin', '/instructions'];
+
+function NoScrollManager() {
+  const location = useLocation();
+  useEffect(() => {
+    const noScroll = NO_SCROLL_ROUTES.includes(location.pathname);
+    document.body.classList.toggle('no-scroll', noScroll);
+    return () => document.body.classList.remove('no-scroll');
+  }, [location.pathname]);
+  return null;
+}
+
+function App() {
+  return (
+    <ToastProvider>
+      <AuthProvider>
+        <NoScrollManager />
+        <Navbar />
+        <Toast />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/search" element={<SearchResults />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/instructions" element={<Instructions />} />
+          <Route path="/requests" element={<MyRequests />} />
+          <Route path="/movie/:id" element={<MediaDetail type="movie" />} />
+          <Route path="/tv/:id" element={<MediaDetail type="tv" />} />
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        </Routes>
+      </AuthProvider>
+    </ToastProvider>
+  )
+}
+
+export default App

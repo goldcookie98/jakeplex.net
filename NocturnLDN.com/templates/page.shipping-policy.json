@@ -1,0 +1,56 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "disabled": true,
+      "settings": {
+        "padding_top": 28,
+        "padding_bottom": 28
+      }
+    },
+    "rich_text_gAWhyd": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_CWX3rG": {
+          "type": "heading",
+          "settings": {
+            "heading": "Shipping Policy",
+            "heading_size": "h1"
+          }
+        },
+        "text_aPANma": {
+          "type": "text",
+          "settings": {
+            "text": "<ul><li><strong>uk domestic orders ship within 5-10 working days</strong></li><li><strong>international orders ship within 5-15 working days</strong></li><li><strong>unless a pre-order ship date is given</strong></li><li><strong>it is the customer's responsibility to pay import taxe</strong></li><li><strong>regulations for import duties and taxes may vary per country and we are therefore unable to control nor predict their amount</strong></li><li><strong>if you refuse a shipment from us, you are then responsible for the original shipping charges and the courier cost</strong></li></ul><p><strong>Please note that international shipments may take longer to be delivered due to the customs process in your country</strong></p>"
+          }
+        }
+      },
+      "block_order": [
+        "heading_CWX3rG",
+        "text_aPANma"
+      ],
+      "name": "t:sections.rich-text.presets.name",
+      "settings": {
+        "desktop_content_position": "center",
+        "content_alignment": "center",
+        "color_scheme": "scheme-b171a079-f236-4bd0-af4e-ded69355bb1d",
+        "full_width": true,
+        "padding_top": 40,
+        "padding_bottom": 52
+      }
+    }
+  },
+  "order": [
+    "main",
+    "rich_text_gAWhyd"
+  ]
+}

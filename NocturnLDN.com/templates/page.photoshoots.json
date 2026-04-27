@@ -1,0 +1,224 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "disabled": true,
+      "settings": {
+        "padding_top": 28,
+        "padding_bottom": 28
+      }
+    },
+    "collage_QxhKrg": {
+      "type": "collage",
+      "blocks": {
+        "image_ERGLEf": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/9ECAC661-BA3B-456C-8E91-EED1B74BF0AB.jpg"
+          }
+        },
+        "image_fUXGdm": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/3EA24D57-63EB-4CBC-97E3-D58864849B4F_1_105_c.jpg"
+          }
+        },
+        "image_6yyKyc": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/5F4AFD56-C79A-417A-AF4A-797C594F02ED_1_105_c.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "image_ERGLEf",
+        "image_fUXGdm",
+        "image_6yyKyc"
+      ],
+      "name": "Raw Denim",
+      "settings": {
+        "heading": "Raw Denim",
+        "heading_size": "h1",
+        "desktop_layout": "left",
+        "mobile_layout": "collage",
+        "card_styles": "none",
+        "color_scheme": "scheme-b171a079-f236-4bd0-af4e-ded69355bb1d",
+        "padding_top": 12,
+        "padding_bottom": 16
+      }
+    },
+    "collage_69WVMD": {
+      "type": "collage",
+      "blocks": {
+        "image_i4XLFt": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/IMG_3300_1_-min.png"
+          }
+        },
+        "image_j4FJC8": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/IMG_3317.png"
+          }
+        },
+        "image_WqpEkf": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Untitled-YTTGYFUFJ_374fd17a-95e3-441a-8c8c-097e6e9c0291.png"
+          }
+        }
+      },
+      "block_order": [
+        "image_i4XLFt",
+        "image_j4FJC8",
+        "image_WqpEkf"
+      ],
+      "name": "Jogga Shorts",
+      "settings": {
+        "heading": "Jogga Shorts",
+        "heading_size": "h1",
+        "desktop_layout": "left",
+        "mobile_layout": "collage",
+        "card_styles": "none",
+        "color_scheme": "scheme-b171a079-f236-4bd0-af4e-ded69355bb1d",
+        "padding_top": 12,
+        "padding_bottom": 16
+      }
+    },
+    "collage_neBb9N": {
+      "type": "collage",
+      "blocks": {
+        "image_jhttic": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Untitled-1-Recovered_2db422c5-14bf-4ea4-bc77-fc6c9cc94510.png"
+          }
+        },
+        "image_HNfJph": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/IMG_2846.jpg"
+          }
+        },
+        "image_ayiHJQ": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/IMG_2797.jpg"
+          }
+        }
+      },
+      "block_order": [
+        "image_jhttic",
+        "image_HNfJph",
+        "image_ayiHJQ"
+      ],
+      "name": "Ticket Tees",
+      "settings": {
+        "heading": "Ticket Tees",
+        "heading_size": "h1",
+        "desktop_layout": "left",
+        "mobile_layout": "collage",
+        "card_styles": "none",
+        "color_scheme": "scheme-b171a079-f236-4bd0-af4e-ded69355bb1d",
+        "padding_top": 12,
+        "padding_bottom": 16
+      }
+    },
+    "collage_AqhEcV": {
+      "type": "collage",
+      "blocks": {
+        "image_fjpWjM": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/29FC4476-4183-43C2-BE25-74841524D17E.png"
+          }
+        },
+        "image_BgBKjQ": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/0DC5560F-91A7-44E4-BDF0-E0379FB1C0A4.png"
+          }
+        },
+        "image_YUgD74": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/Untitled-1.png"
+          }
+        }
+      },
+      "block_order": [
+        "image_fjpWjM",
+        "image_BgBKjQ",
+        "image_YUgD74"
+      ],
+      "name": "GRAFFMAN Jorts",
+      "settings": {
+        "heading": "\"GRAFFMAN\" Jorts",
+        "heading_size": "h1",
+        "desktop_layout": "left",
+        "mobile_layout": "collage",
+        "card_styles": "none",
+        "color_scheme": "scheme-b171a079-f236-4bd0-af4e-ded69355bb1d",
+        "padding_top": 12,
+        "padding_bottom": 16
+      }
+    },
+    "collage_NBFQBe": {
+      "type": "collage",
+      "blocks": {
+        "image_k4eAgU": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/DSC_1649_2.jpg"
+          }
+        },
+        "image_CnKqcm": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/D0EEDBE9-7295-401A-8CF4-232B5024BB87.jpg"
+          }
+        },
+        "image_W3wweh": {
+          "type": "image",
+          "settings": {
+            "image": "shopify://shop_images/asd_asdasdasdasdasdasdasd.png"
+          }
+        }
+      },
+      "block_order": [
+        "image_k4eAgU",
+        "image_CnKqcm",
+        "image_W3wweh"
+      ],
+      "name": "OG Tees",
+      "settings": {
+        "heading": "OG Tees",
+        "heading_size": "h1",
+        "desktop_layout": "left",
+        "mobile_layout": "collage",
+        "card_styles": "none",
+        "color_scheme": "scheme-b171a079-f236-4bd0-af4e-ded69355bb1d",
+        "padding_top": 12,
+        "padding_bottom": 16
+      }
+    }
+  },
+  "order": [
+    "main",
+    "collage_QxhKrg",
+    "collage_69WVMD",
+    "collage_neBb9N",
+    "collage_AqhEcV",
+    "collage_NBFQBe"
+  ]
+}

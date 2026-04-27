@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import Navbar from './components/Navbar'
 import Toast from './components/Toast'
 import Home from './pages/Home'
@@ -12,11 +13,24 @@ import MyRequests from './pages/MyRequests'
 import { ToastProvider } from './context/ToastContext'
 import { AuthProvider } from './context/AuthContext'
 
+const NO_SCROLL_ROUTES = ['/', '/admin', '/instructions'];
+
+function NoScrollManager() {
+  const location = useLocation();
+  useEffect(() => {
+    const noScroll = NO_SCROLL_ROUTES.includes(location.pathname);
+    document.body.classList.toggle('no-scroll', noScroll);
+    return () => document.body.classList.remove('no-scroll');
+  }, [location.pathname]);
+  return null;
+}
+
 function App() {
   return (
     <ToastProvider>
       <AuthProvider>
-<Navbar />
+        <NoScrollManager />
+        <Navbar />
         <Toast />
         <Routes>
           <Route path="/" element={<Home />} />

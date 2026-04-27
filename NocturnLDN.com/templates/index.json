@@ -1,0 +1,101 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "featured_collection_xnk9mR": {
+      "type": "featured-collection",
+      "name": "t:sections.featured-collection.presets.name",
+      "settings": {
+        "collection": "april-2026",
+        "products_to_show": 25,
+        "title": "",
+        "heading_size": "h1",
+        "description": "",
+        "show_description": false,
+        "description_style": "body",
+        "columns_desktop": 3,
+        "enable_desktop_slider": false,
+        "full_width": false,
+        "show_view_all": true,
+        "view_all_style": "solid",
+        "color_scheme": "scheme-ab169676-3b58-4b1d-9fe0-d6a02b76de98",
+        "image_ratio": "square",
+        "image_shape": "default",
+        "show_secondary_image": false,
+        "show_vendor": false,
+        "show_rating": false,
+        "quick_add": "none",
+        "columns_mobile": "2",
+        "swipe_on_mobile": false,
+        "padding_top": 100,
+        "padding_bottom": 100
+      }
+    },
+    "multicolumn_Q6YmUL": {
+      "type": "multicolumn",
+      "blocks": {
+        "column_WFjLzY": {
+          "type": "column",
+          "settings": {
+            "title": "Nocturn Raw Denim",
+            "text": "<p>Estimated delivery date - 9th February</p>",
+            "link_label": "",
+            "link": ""
+          }
+        },
+        "column_nrF7eC": {
+          "type": "column",
+          "settings": {
+            "title": "Joggas",
+            "text": "<p>Estimated delivery date - 15th February</p>",
+            "link_label": "",
+            "link": ""
+          }
+        },
+        "column_CHbYRj": {
+          "type": "column",
+          "settings": {
+            "title": "Crewnecks",
+            "text": "<p>Estimated delivery date - 13th February</p>",
+            "link_label": "",
+            "link": ""
+          }
+        }
+      },
+      "block_order": [
+        "column_WFjLzY",
+        "column_nrF7eC",
+        "column_CHbYRj"
+      ],
+      "disabled": true,
+      "name": "t:sections.multicolumn.presets.name",
+      "settings": {
+        "title": "JOGGAS DROP PREORDER",
+        "heading_size": "h1",
+        "image_width": "full",
+        "image_ratio": "adapt",
+        "button_label": "",
+        "button_link": "",
+        "columns_desktop": 3,
+        "column_alignment": "left",
+        "background_style": "primary",
+        "color_scheme": "scheme-ab169676-3b58-4b1d-9fe0-d6a02b76de98",
+        "columns_mobile": "1",
+        "swipe_on_mobile": false,
+        "padding_top": 36,
+        "padding_bottom": 36
+      }
+    }
+  },
+  "order": [
+    "featured_collection_xnk9mR",
+    "multicolumn_Q6YmUL"
+  ]
+}

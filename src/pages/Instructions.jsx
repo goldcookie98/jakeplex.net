@@ -6,7 +6,7 @@ export default function Instructions() {
                     <h2>Instructions</h2>
                 </div>
 
-                <div className="media-card" style={{ padding: '32px', backgroundColor: 'var(--bg-glass)', borderRadius: 'var(--radius-lg)' }}>
+                <div className="media-card instructions-card" style={{ padding: '32px', backgroundColor: 'var(--bg-glass)', borderRadius: 'var(--radius-lg)' }}>
                     <h3 style={{ marginBottom: '16px', color: 'var(--accent-primary)', fontSize: '1.2rem' }}>Quality & Speed</h3>
                     <p style={{ marginBottom: '32px', lineHeight: '1.6' }}>
                         All media is at <strong>1080p or 4K</strong>. All requests will be completed fast.

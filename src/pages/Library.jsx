@@ -65,9 +65,9 @@ export default function Library() {
     return (
         <div className="page">
             <div className="container" style={{ paddingTop: '24px' }}>
-                <div style={{ marginBottom: '32px' }}>
+                <div className="library-search" style={{ marginBottom: '32px' }}>
                     <div className="search-bar">
-                        <span className="search-icon">🔍</span>
+                        <span className="search-bar-icon">🔍</span>
                         <input
                             type="text"
                             placeholder="Filter your library..."

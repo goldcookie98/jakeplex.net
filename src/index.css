@@ -50,7 +50,7 @@
 }
 
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-html { font-size:16px; scroll-behavior:smooth; }
+html { font-size:16px; scroll-behavior:smooth; overflow-x:hidden; max-width:100vw; }
 body {
   font-family:var(--font-body);
   background:var(--bg-primary);
@@ -60,6 +60,7 @@ body {
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
   overflow-x:hidden;
+  max-width:100vw;
 }
 
 /* Film grain */
@@ -268,6 +269,7 @@ body.no-scroll { overflow:hidden !important; }
   padding-top:clamp(70px,10vh,110px);
   min-height:calc(100vh - 80px);
   text-align:center;position:relative;overflow:hidden;
+  width:100%;max-width:100vw;
 }
 
 /* Hero orbs */
@@ -637,13 +639,14 @@ body.no-scroll { overflow:hidden !important; }
   .mobile-nav-link:hover,.mobile-nav-link.active { color:#c4b5fd;background:rgba(139,92,246,0.1); }
 
   /* Layout */
-  .container { padding:0 14px; }
-  .page { padding-top:0; }
+  .container { padding:0 14px;max-width:100vw; }
+  .page { padding-top:0;overflow-x:hidden; }
 
   /* Hero */
-  .hero { padding:20px 14px 0;min-height:100svh;align-items:center;justify-content:flex-start;overflow-y:auto; }
-  body.no-scroll .hero { overflow-y:auto; }
-  .hero-content { padding-top:clamp(48px,8vh,80px);padding-bottom:24px; }
+  .hero { padding:20px 14px 0;min-height:100svh;align-items:center;justify-content:flex-start;overflow-x:hidden;overflow-y:auto;width:100%; }
+  .hero-orbs { overflow:hidden;width:100%;max-width:100vw; }
+  .hero-posters { overflow:hidden;width:100%;max-width:100vw; }
+  .hero-content { padding-top:clamp(48px,8vh,80px);padding-bottom:24px;width:100%;max-width:100%; }
   .hero-eyebrow { font-size:0.7rem;margin-bottom:12px; }
   .hero-subtitle { font-size:0.95rem;margin-bottom:28px; }
 

@@ -18,7 +18,6 @@
 <body>
   <div id="root"></div>
   <canvas id="starfield"></canvas>
-  <div id="cursor-glow"></div>
   <script type="module" src="/src/main.jsx"></script>
   <script>
     (function(){
@@ -42,12 +41,6 @@
         requestAnimationFrame(draw);
       }
       draw();
-    })();
-    (function(){
-      const el=document.getElementById('cursor-glow');
-      let tx=-250,ty=-250,cx=-250,cy=-250;
-      window.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;});
-      (function loop(){cx+=(tx-cx)*0.12;cy+=(ty-cy)*0.12;el.style.left=cx+'px';el.style.top=cy+'px';requestAnimationFrame(loop);})();
     })();
   </script>
 </body>

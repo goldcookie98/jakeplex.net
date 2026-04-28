@@ -19,8 +19,13 @@ function NoScrollManager() {
   const location = useLocation();
   useEffect(() => {
     const noScroll = NO_SCROLL_ROUTES.includes(location.pathname);
-    document.body.classList.toggle('no-scroll', noScroll);
-    return () => document.body.classList.remove('no-scroll');
+    const val = noScroll ? 'hidden' : '';
+    document.documentElement.style.overflow = val;
+    document.body.style.overflow = val;
+    return () => {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
   }, [location.pathname]);
   return null;
 }
@@ -36,7 +41,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/library" element={<Library />} />
-          <Route path="/instructions" element={<Instructions />} />
+<Route path="/instructions" element={<Instructions />} />
           <Route path="/requests" element={<MyRequests />} />
           <Route path="/movie/:id" element={<MediaDetail type="movie" />} />
           <Route path="/tv/:id" element={<MediaDetail type="tv" />} />

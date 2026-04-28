@@ -1,7 +1,24 @@
 import SearchBar from '../components/SearchBar';
-import RecentlyAdded from '../components/RecentlyAdded';
+import { Waves } from '../components/Waves';
+import { CircularGallery } from '../components/ui/circular-gallery';
 
-const IMG = 'https://image.tmdb.org/t/p';
+const IMG_BASE = 'https://image.tmdb.org/t/p';
+const IMG = IMG_BASE + '/w500';
+
+const MOVIES = [
+    { title: 'Inception',         year: 2010, genre: 'Sci-Fi',   poster: '/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg' },
+    { title: 'Interstellar',      year: 2014, genre: 'Sci-Fi',   poster: '/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg' },
+    { title: 'The Dark Knight',   year: 2008, genre: 'Action',   poster: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg' },
+    { title: 'Blade Runner 2049', year: 2017, genre: 'Sci-Fi',   poster: '/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg' },
+    { title: 'Dune',              year: 2021, genre: 'Sci-Fi',   poster: '/d5NXSklpcuveU44vs7O8gQ7UZHG.jpg' },
+    { title: 'Oppenheimer',       year: 2023, genre: 'Drama',    poster: '/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg' },
+    { title: 'The Matrix',        year: 1999, genre: 'Sci-Fi',   poster: '/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg' },
+    { title: 'Avengers: Endgame',year: 2019, genre: 'Action',   poster: '/or06FN3Dka5tukK1e9sl16pB3iy.jpg' },
+    { title: 'Parasite',          year: 2019, genre: 'Thriller', poster: '/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg' },
+    { title: 'The Godfather',     year: 1972, genre: 'Drama',    poster: '/3bhkrj58Vtu7enYsLegHnDmni69.jpg' },
+];
+
+const GALLERY_ITEMS = MOVIES.map(m => ({ ...m, poster: IMG + m.poster }));
 
 const ALL_POSTER_PATHS = [
     '/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', '/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg',
@@ -39,7 +56,12 @@ const HERO_POSTERS = POSTER_POSITIONS.map((pos, i) => ({ ...pos, p: shuffled[i] 
 
 export default function Home() {
     return (
-        <div className="page">
+        <div className="page home-page">
+            <Waves
+                strokeColor="rgba(255,255,255,0.12)"
+                backgroundColor="transparent"
+                pointerSize={0}
+            />
             <div className="hero">
                 <div className="hero-orbs">
                     <div className="orb orb-1" />
@@ -53,7 +75,7 @@ export default function Home() {
                         <div key={i}>
                             <img
                                 className="hero-poster-img"
-                                src={`${IMG}/w185${hp.p}`}
+                                src={`${IMG_BASE}/w185${hp.p}`}
                                 alt=""
                                 aria-hidden="true"
                                 style={{
@@ -67,7 +89,7 @@ export default function Home() {
                             />
                             <img
                                 className="hero-poster-glitch"
-                                src={`${IMG}/w185${hp.p}`}
+                                src={`${IMG_BASE}/w185${hp.p}`}
                                 alt=""
                                 aria-hidden="true"
                                 style={{
@@ -95,7 +117,10 @@ export default function Home() {
                     </div>
 
                     <SearchBar autoFocus />
-                    <RecentlyAdded />
+
+                    <div style={{ width: '100%', height: '220px', position: 'relative', marginTop: '32px' }}>
+                        <CircularGallery items={GALLERY_ITEMS} radius={280} autoRotateSpeed={0.03} />
+                    </div>
                 </div>
             </div>
         </div>

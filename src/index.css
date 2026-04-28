@@ -646,6 +646,7 @@ body.no-scroll { overflow:hidden !important; }
   .recently-added-container { margin:32px auto 0;padding:0; }
   .recently-added-title { font-size:1.1rem;margin-bottom:14px; }
   .recently-added-grid { grid-template-columns:repeat(2,1fr);gap:10px; }
+  .recently-added-grid > *:nth-child(n+3) { display:none; }
 
   /* Results grid */
   .results-grid { grid-template-columns:repeat(2,1fr);gap:10px;padding-bottom:32px; }

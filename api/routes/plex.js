@@ -199,7 +199,7 @@ router.get('/recent-unrequested', async (req, res) => {
         // Sort by most recently added
         allItems.sort((a, b) => b.addedAt - a.addedAt);
 
-        res.json({ items: allItems.slice(0, 20) });
+        res.json({ items: allItems.slice(0, 10) });
     } catch (err) {
         console.error('Plex Recent-Unrequested Error:', err.message, err.cause);
         res.json({ items: [], error: `Fetch failed: ${err.message}` });

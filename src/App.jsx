@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import Navbar from './components/Navbar'
 import Toast from './components/Toast'
+import { FallingPattern } from './components/ui/FallingPattern'
 import Home from './pages/Home'
 import SearchResults from './pages/SearchResults'
 import MediaDetail from './pages/MediaDetail'
@@ -35,6 +36,10 @@ function App() {
     <ToastProvider>
       <AuthProvider>
         <NoScrollManager />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, maskImage: 'radial-gradient(ellipse at center, transparent 0%, #04060f 80%)', WebkitMaskImage: 'radial-gradient(ellipse at center, transparent 0%, #04060f 80%)' }}>
+          <FallingPattern style={{ height: '100vh' }} />
+        </div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
         <Navbar />
         <Toast />
         <Routes>
@@ -48,6 +53,7 @@ function App() {
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
+        </div>
       </AuthProvider>
     </ToastProvider>
   )

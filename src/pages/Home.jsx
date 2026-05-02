@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import SearchBar from '../components/SearchBar';
-import { Waves } from '../components/Waves';
 import { CircularGallery } from '../components/ui/circular-gallery';
 
 const IMG_BASE = 'https://image.tmdb.org/t/p';
@@ -61,18 +60,7 @@ export default function Home() {
 
     return (
         <div className="page home-page">
-            <Waves
-                strokeColor="rgba(255,255,255,0.12)"
-                backgroundColor="transparent"
-                pointerSize={0}
-            />
             <div className="hero">
-                <div className="hero-orbs">
-                    <div className="orb orb-1" />
-                    <div className="orb orb-2" />
-                    <div className="orb orb-3" />
-                    <div className="orb orb-4" />
-                </div>
 
                 <div className="hero-posters">
                     {HERO_POSTERS.map((hp, i) => (

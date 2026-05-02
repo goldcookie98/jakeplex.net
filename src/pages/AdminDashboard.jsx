@@ -716,11 +716,19 @@ export default function AdminDashboard() {
                         ) : (
                             <div className="requests-table-wrapper">
                                 <table className="requests-table">
-                                    <thead><tr><th>Username</th><th>Created</th><th>Action</th></tr></thead>
+                                    <thead><tr><th>Username</th><th>Password</th><th>Created</th><th>Action</th></tr></thead>
                                     <tbody>
                                         {customUsers.map(u => (
-                                            <tr key={u.id}>
+                                            <tr key={u.id} style={{ cursor: 'default' }}>
                                                 <td data-label="Username" style={{ fontWeight: 600 }}>{u.username}</td>
+                                                <td data-label="Password">
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>{u.password || '—'}</span>
+                                                        {u.password && (
+                                                            <button onClick={() => { navigator.clipboard.writeText(u.password); addToast('Password copied', 'success'); }} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '4px', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px 8px', fontSize: '0.75rem' }}>Copy</button>
+                                                        )}
+                                                    </div>
+                                                </td>
                                                 <td data-label="Created" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{new Date(u.created_at).toLocaleDateString()}</td>
                                                 <td data-label="Action">
                                                     <button className="btn btn-danger btn-sm" onClick={() => handleDeleteCustomUser(u.id, u.username)}>Delete</button>

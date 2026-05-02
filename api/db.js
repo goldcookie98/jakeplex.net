@@ -157,14 +157,14 @@ export const createCustomUser = async (username, password) => {
   const existing = await customUsersCollection.where('username', '==', username).limit(1).get();
   if (!existing.empty) throw new Error("Username already exists");
   const password_hash = await bcrypt.hash(password, 10);
-  const docRef = await customUsersCollection.add({ username, password_hash, created_at: new Date().toISOString() });
+  const docRef = await customUsersCollection.add({ username, password_hash, password, created_at: new Date().toISOString() });
   return { id: docRef.id, username };
 };
 
 export const getCustomUsers = async () => {
   if (!customUsersCollection) throw new Error("Database not connected.");
   const snapshot = await customUsersCollection.orderBy('created_at', 'desc').get();
-  return snapshot.docs.map(doc => ({ id: doc.id, username: doc.data().username, created_at: doc.data().created_at }));
+  return snapshot.docs.map(doc => ({ id: doc.id, username: doc.data().username, password: doc.data().password, created_at: doc.data().created_at }));
 };
 
 export const deleteCustomUser = async (id) => {

@@ -79,6 +79,7 @@ export default function AdminDashboard() {
     const [customUsers, setCustomUsers] = useState([]);
     const [newUsername, setNewUsername] = useState('');
     const [newPassword, setNewPassword] = useState('');
+    const [createdCredentials, setCreatedCredentials] = useState(null);
     const [customUsersLoading, setCustomUsersLoading] = useState(false);
     const navigate = useNavigate();
     const { addToast } = useToast();
@@ -116,7 +117,7 @@ export default function AdminDashboard() {
             });
             const data = await res.json();
             if (!res.ok) { addToast(data.error || 'Failed to create user', 'error'); return; }
-            addToast(`Created user "${newUsername}"`, 'success');
+            setCreatedCredentials({ username: newUsername, password: newPassword });
             setNewUsername('');
             setNewPassword('');
             fetchCustomUsers();
@@ -686,6 +687,26 @@ export default function AdminDashboard() {
                                 <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>Create User</button>
                             </form>
                         </div>
+
+                        {createdCredentials && (
+                            <div style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.35)', borderRadius: '10px', padding: '18px', marginBottom: '24px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                    <span style={{ fontWeight: 700, color: '#4ade80' }}>User created — save these credentials</span>
+                                    <button onClick={() => setCreatedCredentials(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.1rem', lineHeight: 1 }}>✕</button>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontFamily: 'monospace', fontSize: '0.95rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <span style={{ color: 'var(--text-muted)', minWidth: '90px' }}>Username:</span>
+                                        <span style={{ background: 'var(--bg-secondary)', padding: '4px 10px', borderRadius: '4px', color: 'var(--text-primary)' }}>{createdCredentials.username}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <span style={{ color: 'var(--text-muted)', minWidth: '90px' }}>Password:</span>
+                                        <span style={{ background: 'var(--bg-secondary)', padding: '4px 10px', borderRadius: '4px', color: 'var(--text-primary)' }}>{createdCredentials.password}</span>
+                                        <button onClick={() => { navigator.clipboard.writeText(createdCredentials.password); addToast('Password copied', 'success'); }} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '4px', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px 8px', fontSize: '0.8rem' }}>Copy</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <h3 style={{ margin: '0 0 12px', color: 'var(--text-primary)' }}>Existing Custom Users</h3>
                         {customUsersLoading ? (

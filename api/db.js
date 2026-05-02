@@ -1,11 +1,13 @@
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 dotenv.config();
 
 let db = null;
 let requestsCollection = null;
 let knownDevicesCollection = null;
+let customUsersCollection = null;
 
 let firebaseInitError = null;
 
@@ -28,6 +30,7 @@ if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !p
     db = getFirestore();
     requestsCollection = db.collection('requests');
     knownDevicesCollection = db.collection('known_devices');
+    customUsersCollection = db.collection('custom_users');
   } catch (e) {
     firebaseInitError = e.message;
     console.error("Firebase Admin Initialization Error:", e);
@@ -147,4 +150,32 @@ export const findKnownDevice = async (ipAddress, userAgent) => {
     
   if (snapshot.empty) return null;
   return snapshot.docs[0].data();
+};
+
+export const createCustomUser = async (username, password) => {
+  if (!customUsersCollection) throw new Error("Database not connected.");
+  const existing = await customUsersCollection.where('username', '==', username).limit(1).get();
+  if (!existing.empty) throw new Error("Username already exists");
+  const password_hash = await bcrypt.hash(password, 10);
+  const docRef = await customUsersCollection.add({ username, password_hash, created_at: new Date().toISOString() });
+  return { id: docRef.id, username };
+};
+
+export const getCustomUsers = async () => {
+  if (!customUsersCollection) throw new Error("Database not connected.");
+  const snapshot = await customUsersCollection.orderBy('created_at', 'desc').get();
+  return snapshot.docs.map(doc => ({ id: doc.id, username: doc.data().username, created_at: doc.data().created_at }));
+};
+
+export const deleteCustomUser = async (id) => {
+  if (!customUsersCollection) throw new Error("Database not connected.");
+  await customUsersCollection.doc(id).delete();
+  return { success: true };
+};
+
+export const findCustomUserByUsername = async (username) => {
+  if (!customUsersCollection) throw new Error("Database not connected.");
+  const snapshot = await customUsersCollection.where('username', '==', username).limit(1).get();
+  if (snapshot.empty) return null;
+  return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
 };

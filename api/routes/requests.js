@@ -1,6 +1,25 @@
 import { Router } from 'express';
+import jwt from 'jsonwebtoken';
 import { addRequest, getRequests, getRequestByTmdbId, getRequestsByUser, updateRequestStatus, deleteRequest, updateRequestEstimatedUser, assignKnownDevice, findKnownDevice } from '../db.js';
 import { verifyToken } from '../middleware/auth.js';
+
+// Resolves a Bearer token to { username, email, thumb } — supports both Plex tokens and custom user JWTs
+async function resolveRequester(authHeader) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+    const token = authHeader.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded.role === 'custom') {
+            return { username: decoded.username, email: null, thumb: null };
+        }
+    } catch {}
+    const plexRes = await fetch('https://plex.tv/api/v2/user', {
+        headers: { 'Accept': 'application/json', 'X-Plex-Token': token, 'X-Plex-Client-Identifier': 'jakeplex-backend' }
+    });
+    if (!plexRes.ok) return null;
+    const u = await plexRes.json();
+    return { username: u.username || u.email, email: u.email, thumb: u.thumb };
+}
 
 const router = Router();
 
@@ -8,31 +27,15 @@ const router = Router();
 router.post('/', async (req, res) => {
     try {
         const { tmdb_id, media_type, title, poster_path, backdrop_path, overview, year, device_info } = req.body;
-        const authHeader = req.headers.authorization;
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ error: 'Unauthorized: Plex token is required to make a request' });
+        const requester = await resolveRequester(req.headers.authorization);
+        if (!requester) {
+            return res.status(401).json({ error: 'Unauthorized: valid login required to make a request' });
         }
 
-        const plexToken = authHeader.split(' ')[1];
-
-        // Securely verify token with Plex
-        const plexRes = await fetch('https://plex.tv/api/v2/user', {
-            headers: { 
-                'Accept': 'application/json',
-                'X-Plex-Token': plexToken,
-                'X-Plex-Client-Identifier': 'jakeplex-backend'
-            }
-        });
-
-        if (!plexRes.ok) {
-            return res.status(401).json({ error: 'Unauthorized: Invalid Plex Token' });
-        }
-
-        const plexUser = await plexRes.json();
-        const requested_by = plexUser.username || plexUser.email; // Guaranteed verified name
-        const plex_email = plexUser.email;
-        const plex_thumb = plexUser.thumb;
+        const requested_by = requester.username;
+        const plex_email = requester.email;
+        const plex_thumb = requester.thumb;
         const ip_address = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.ip;
         
         const location_info = {
@@ -72,29 +75,9 @@ router.post('/', async (req, res) => {
 // Public: get my requests
 router.get('/me', async (req, res) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ error: 'Unauthorized: Plex token is required' });
-        }
-        const plexToken = authHeader.split(' ')[1];
-
-        // Verify with Plex to get username
-        const plexRes = await fetch('https://plex.tv/api/v2/user', {
-            headers: { 
-                'Accept': 'application/json',
-                'X-Plex-Token': plexToken,
-                'X-Plex-Client-Identifier': 'jakeplex-backend'
-            }
-        });
-
-        if (!plexRes.ok) {
-            return res.status(401).json({ error: 'Unauthorized: Invalid Plex Token' });
-        }
-
-        const plexUser = await plexRes.json();
-        const username = plexUser.username || plexUser.email;
-
-        const myRequests = await getRequestsByUser(username);
+        const requester = await resolveRequester(req.headers.authorization);
+        if (!requester) return res.status(401).json({ error: 'Unauthorized' });
+        const myRequests = await getRequestsByUser(requester.username);
         res.json(myRequests);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -104,26 +87,9 @@ router.get('/me', async (req, res) => {
 // Public: cancel my request
 router.delete('/me/:id', async (req, res) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ error: 'Unauthorized: Plex token is required' });
-        }
-        const plexToken = authHeader.split(' ')[1];
-
-        const plexRes = await fetch('https://plex.tv/api/v2/user', {
-            headers: { 
-                'Accept': 'application/json',
-                'X-Plex-Token': plexToken,
-                'X-Plex-Client-Identifier': 'jakeplex-backend'
-            }
-        });
-
-        if (!plexRes.ok) {
-            return res.status(401).json({ error: 'Unauthorized: Invalid Plex Token' });
-        }
-
-        const plexUser = await plexRes.json();
-        const username = plexUser.username || plexUser.email;
+        const requester = await resolveRequester(req.headers.authorization);
+        if (!requester) return res.status(401).json({ error: 'Unauthorized' });
+        const username = requester.username;
 
         const myRequests = await getRequestsByUser(username);
         const reqToDelete = myRequests.find(r => r.id === req.params.id);

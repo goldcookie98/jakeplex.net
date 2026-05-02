@@ -13,6 +13,19 @@ export function AuthProvider({ children }) {
     const [plexUser, setPlexUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const loginWithCustom = async (username, password) => {
+        const res = await fetch('/api/auth/custom-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Login failed');
+        localStorage.setItem('jakeplex_custom_token', data.token);
+        setPlexUser({ username: data.username, token: data.token, thumb: null, email: null, isCustom: true });
+        return data;
+    };
+
     const headers = {
         'Accept': 'application/json',
         'X-Plex-Client-Identifier': PLEX_CLIENT_ID,
@@ -42,7 +55,21 @@ export function AuthProvider({ children }) {
                 }
             }
 
-            // Normal token check
+            // Check for saved custom user token
+            const customToken = localStorage.getItem('jakeplex_custom_token');
+            if (customToken) {
+                try {
+                    const payload = JSON.parse(atob(customToken.split('.')[1]));
+                    if (payload.exp * 1000 > Date.now() && payload.role === 'custom') {
+                        setPlexUser({ username: payload.username, token: customToken, thumb: null, email: null, isCustom: true });
+                        setIsLoading(false);
+                        return;
+                    }
+                } catch {}
+                localStorage.removeItem('jakeplex_custom_token');
+            }
+
+            // Normal Plex token check
             const token = localStorage.getItem('plex_token');
             if (!token) {
                 setIsLoading(false);
@@ -77,6 +104,7 @@ export function AuthProvider({ children }) {
 
     const logout = () => {
         localStorage.removeItem('plex_token');
+        localStorage.removeItem('jakeplex_custom_token');
         setPlexUser(null);
     };
 
@@ -111,7 +139,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <AuthContext.Provider value={{ plexUser, isLoading, loginWithPlex, logout }}>
+        <AuthContext.Provider value={{ plexUser, isLoading, loginWithPlex, loginWithCustom, logout }}>
             {children}
         </AuthContext.Provider>
     );

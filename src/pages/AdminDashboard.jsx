@@ -76,6 +76,10 @@ export default function AdminDashboard() {
     const [assignName, setAssignName] = useState('');
     const [assigning, setAssigning] = useState(false);
     const [activeTab, setActiveTab] = useState('requests');
+    const [customUsers, setCustomUsers] = useState([]);
+    const [newUsername, setNewUsername] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [customUsersLoading, setCustomUsersLoading] = useState(false);
     const navigate = useNavigate();
     const { addToast } = useToast();
 
@@ -88,6 +92,47 @@ export default function AdminDashboard() {
         }
         fetchRequests();
     }, []);
+
+    useEffect(() => {
+        if (activeTab === 'customUsers') fetchCustomUsers();
+    }, [activeTab]);
+
+    const fetchCustomUsers = async () => {
+        setCustomUsersLoading(true);
+        try {
+            const res = await fetch('/api/auth/custom-users', { headers: { Authorization: `Bearer ${token}` } });
+            if (res.ok) setCustomUsers(await res.json());
+        } catch {}
+        setCustomUsersLoading(false);
+    };
+
+    const handleCreateCustomUser = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch('/api/auth/custom-users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ username: newUsername, password: newPassword }),
+            });
+            const data = await res.json();
+            if (!res.ok) { addToast(data.error || 'Failed to create user', 'error'); return; }
+            addToast(`Created user "${newUsername}"`, 'success');
+            setNewUsername('');
+            setNewPassword('');
+            fetchCustomUsers();
+        } catch { addToast('Failed to create user', 'error'); }
+    };
+
+    const handleDeleteCustomUser = async (id, username) => {
+        if (!confirm(`Delete user "${username}"?`)) return;
+        try {
+            const res = await fetch(`/api/auth/custom-users/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) { addToast(`Deleted user "${username}"`, 'success'); fetchCustomUsers(); }
+        } catch { addToast('Failed to delete user', 'error'); }
+    };
 
     const fetchRequests = async () => {
         setLoading(true);
@@ -303,11 +348,17 @@ export default function AdminDashboard() {
                             >
                                 Users
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setActiveTab('devices')}
                                 style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: activeTab === 'devices' ? 'var(--accent-primary)' : 'transparent', color: activeTab === 'devices' ? '#1a1a1a' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
                             >
                                 Devices
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('customUsers')}
+                                style={{ padding: '6px 16px', borderRadius: '6px', border: 'none', background: activeTab === 'customUsers' ? 'var(--accent-primary)' : 'transparent', color: activeTab === 'customUsers' ? '#1a1a1a' : 'var(--text-secondary)', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}
+                            >
+                                Custom Users
                             </button>
                         </div>
                     </div>
@@ -618,6 +669,47 @@ export default function AdminDashboard() {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                ) : activeTab === 'customUsers' ? (
+                    <div style={{ marginTop: '20px', maxWidth: '600px' }}>
+                        <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
+                            <h3 style={{ margin: '0 0 16px', color: 'var(--text-primary)' }}>Create Custom Login</h3>
+                            <form onSubmit={handleCreateCustomUser} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                <div className="form-group" style={{ margin: 0 }}>
+                                    <label>Username</label>
+                                    <input className="form-input" type="text" value={newUsername} onChange={e => setNewUsername(e.target.value)} placeholder="Enter username" required />
+                                </div>
+                                <div className="form-group" style={{ margin: 0 }}>
+                                    <label>Password</label>
+                                    <input className="form-input" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Enter password" required />
+                                </div>
+                                <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>Create User</button>
+                            </form>
+                        </div>
+
+                        <h3 style={{ margin: '0 0 12px', color: 'var(--text-primary)' }}>Existing Custom Users</h3>
+                        {customUsersLoading ? (
+                            <div className="loading"><div className="spinner" /></div>
+                        ) : customUsers.length === 0 ? (
+                            <p style={{ color: 'var(--text-muted)' }}>No custom users yet.</p>
+                        ) : (
+                            <div className="requests-table-wrapper">
+                                <table className="requests-table">
+                                    <thead><tr><th>Username</th><th>Created</th><th>Action</th></tr></thead>
+                                    <tbody>
+                                        {customUsers.map(u => (
+                                            <tr key={u.id}>
+                                                <td data-label="Username" style={{ fontWeight: 600 }}>{u.username}</td>
+                                                <td data-label="Created" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{new Date(u.created_at).toLocaleDateString()}</td>
+                                                <td data-label="Action">
+                                                    <button className="btn btn-danger btn-sm" onClick={() => handleDeleteCustomUser(u.id, u.username)}>Delete</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 ) : null}
             </div>

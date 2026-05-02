@@ -335,7 +335,7 @@ export default function AdminDashboard() {
             <div className="container dashboard">
                 <div className="dashboard-header">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                        <h1 style={{ margin: 0 }}>Dashboard</h1>
+                        <h1 style={{ margin: 0 }}>Dashboard <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>v{__APP_VERSION__}</span></h1>
                         <div style={{ display: 'flex', background: 'var(--bg-secondary)', borderRadius: '8px', padding: '4px' }}>
                             <button 
                                 onClick={() => setActiveTab('requests')}
